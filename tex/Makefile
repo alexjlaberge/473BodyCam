@@ -9,4 +9,4 @@ all : proposal.pdf
 	$(BIBC) $(patsubst %.tex, %, $<)
 	$(LATEXC) $<
 	$(LATEXC) $<
-	rm -f *.aux *.bbl *.blg *.log *.out
+	rm -f *.aux *.bbl *.blg *.log *.out *.toc
