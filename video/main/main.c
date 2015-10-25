@@ -141,69 +141,65 @@ void configure_gpio(void)
 
 void configure_pins()
 {
-    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
+    //SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);
-    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOC);
+    //SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOC);
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOD);
-    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOE);
-    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOF);
-    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOG);
-    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOH);
-    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOJ);
-    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOK);
+//    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOE);
+//    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOF);
+//    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOG);
+//    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOH);
+//    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOJ);
+//    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOK);
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOL);
-    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOM);
-    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPION);
-    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOP);
-    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOQ);
+//    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOM);
+//    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPION);
+//    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOP);
+//    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOQ);
 
-    GPIOPinConfigure(GPIO_PA0_U0RX);
-    GPIOPinConfigure(GPIO_PA1_U0TX);
-    GPIOPinTypeUART(GPIO_PORTA_BASE, GPIO_PIN_0 | GPIO_PIN_1);
+    //GPIOPinConfigure(GPIO_PA0_U0RX);
+    //GPIOPinConfigure(GPIO_PA1_U0TX);
+    //GPIOPinTypeUART(GPIO_PORTA_BASE, GPIO_PIN_0 | GPIO_PIN_1);
 
-    //
-    // PB0-1/PD6/PL6-7 are used for USB.
-    // PQ4 can be used as a power fault detect on this board but it is not
-    // the hardware peripheral power fault input pin.
-    //
+    // PB0-1/PD6/PL6-7 are used for USB
     HWREG(GPIO_PORTD_BASE + GPIO_O_LOCK) = GPIO_LOCK_KEY;
     HWREG(GPIO_PORTD_BASE + GPIO_O_CR) = 0xff;
     GPIOPinConfigure(GPIO_PD6_USB0EPEN);
     GPIOPinTypeUSBAnalog(GPIO_PORTB_BASE, GPIO_PIN_0 | GPIO_PIN_1);
     GPIOPinTypeUSBDigital(GPIO_PORTD_BASE, GPIO_PIN_6);
     GPIOPinTypeUSBAnalog(GPIO_PORTL_BASE, GPIO_PIN_6 | GPIO_PIN_7);
-    GPIOPinTypeGPIOInput(GPIO_PORTQ_BASE, GPIO_PIN_4);
+    //GPIOPinTypeGPIOInput(GPIO_PORTQ_BASE, GPIO_PIN_4);
 
     //
     // This app does not want Ethernet LED function so configure as
     // standard outputs for LED driving.
     //
-    GPIOPinTypeGPIOOutput(GPIO_PORTF_BASE, GPIO_PIN_0 | GPIO_PIN_4);
+    //GPIOPinTypeGPIOOutput(GPIO_PORTF_BASE, GPIO_PIN_0 | GPIO_PIN_4);
 
     //
     // Default the LEDs to OFF.
     //
-    GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_0 | GPIO_PIN_4, 0);
-    MAP_GPIOPadConfigSet(GPIO_PORTF_BASE, GPIO_PIN_0 | GPIO_PIN_4,
-                         GPIO_STRENGTH_12MA, GPIO_PIN_TYPE_STD);
+    //GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_0 | GPIO_PIN_4, 1);
+    //MAP_GPIOPadConfigSet(GPIO_PORTF_BASE, GPIO_PIN_0 | GPIO_PIN_4,
+    //                     GPIO_STRENGTH_12MA, GPIO_PIN_TYPE_STD);
 
     //
     // PJ0 and J1 are used for user buttons
     //
-    GPIOPinTypeGPIOInput(GPIO_PORTJ_BASE, GPIO_PIN_0 | GPIO_PIN_1);
-    GPIOPinWrite(GPIO_PORTJ_BASE, GPIO_PIN_0 | GPIO_PIN_1, 0);
+    //GPIOPinTypeGPIOInput(GPIO_PORTJ_BASE, GPIO_PIN_0 | GPIO_PIN_1);
+    //GPIOPinWrite(GPIO_PORTJ_BASE, GPIO_PIN_0 | GPIO_PIN_1, 0);
 
     //
     // PN0 and PN1 are used for USER LEDs.
     //
-    GPIOPinTypeGPIOOutput(GPIO_PORTN_BASE, GPIO_PIN_0 | GPIO_PIN_1);
-    MAP_GPIOPadConfigSet(GPIO_PORTN_BASE, GPIO_PIN_0 | GPIO_PIN_1,
-                             GPIO_STRENGTH_12MA, GPIO_PIN_TYPE_STD);
+    //GPIOPinTypeGPIOOutput(GPIO_PORTN_BASE, GPIO_PIN_0 | GPIO_PIN_1);
+    //MAP_GPIOPadConfigSet(GPIO_PORTN_BASE, GPIO_PIN_0 | GPIO_PIN_1,
+    //                         GPIO_STRENGTH_12MA, GPIO_PIN_TYPE_STD);
 
     //
     // Default the LEDs to OFF.
     //
-    GPIOPinWrite(GPIO_PORTN_BASE, GPIO_PIN_0 | GPIO_PIN_1, 0);
+    //GPIOPinWrite(GPIO_PORTN_BASE, GPIO_PIN_0 | GPIO_PIN_1, 0);
 }
 
 #define TICKS_PER_SECOND 100
@@ -250,7 +246,7 @@ DECLARE_EVENT_DRIVER(g_sUSBEventDriver, 0, 0, USBHCDEvents);
 
 static tUSBHostClassDriver const * const g_ppHostClassDrivers[] =
 {
-    &g_sUSBHIDClassDriver,
+	&g_sUSBHIDClassDriver,
     &g_sUSBEventDriver
 };
 
@@ -269,10 +265,7 @@ int main(void)
                                            SYSCTL_USE_PLL |
                                            SYSCTL_CFG_VCO_480), 120000000);
 
-    //
-    // Enable the pins and peripherals used by this example.
-    //
-    // TODO PinoutSet(0,1);
+    configure_pins();
 
     SysTickPeriodSet(ui32SysClock / TICKS_PER_SECOND);
     SysTickEnable();
