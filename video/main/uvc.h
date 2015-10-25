@@ -11,7 +11,13 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include <usblib/usblib.h>
+
+#include <usblib/host/usbhost.h>
+
 #define UVC_VERSION 0x150
+
+extern const tUSBHostClassDriver uvc_driver;
 
 struct uvc_payload_header
 {

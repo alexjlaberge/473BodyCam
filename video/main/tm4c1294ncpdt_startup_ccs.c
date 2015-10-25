@@ -22,7 +22,10 @@
 //
 //*****************************************************************************
 
+#include "ticks.h"
 #include <stdint.h>
+#include <stdbool.h>
+#include <usblib/usblib.h>
 
 //*****************************************************************************
 //
@@ -82,7 +85,7 @@ void (* const g_pfnVectors[])(void) =
     IntDefaultHandler,                      // Debug monitor handler
     0,                                      // Reserved
     IntDefaultHandler,                      // The PendSV handler
-    IntDefaultHandler,                      // The SysTick handler
+    sys_tick_handler,                       // The SysTick handler
     IntDefaultHandler,                      // GPIO Port A
     IntDefaultHandler,                      // GPIO Port B
     IntDefaultHandler,                      // GPIO Port C
@@ -125,7 +128,7 @@ void (* const g_pfnVectors[])(void) =
     IntDefaultHandler,                      // CAN1
     IntDefaultHandler,                      // Ethernet
     IntDefaultHandler,                      // Hibernate
-    IntDefaultHandler,                      // USB0
+    USB0OTGModeIntHandler,                  // USB0
     IntDefaultHandler,                      // PWM Generator 3
     IntDefaultHandler,                      // uDMA Software Transfer
     IntDefaultHandler,                      // uDMA Error

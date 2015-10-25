@@ -13,6 +13,8 @@
 
 static void * uvc_open(tUSBHostDevice *dev);
 static void uvc_close(void *dev);
+static uint32_t uvc_callback(void *camera, uint32_t event, uint32_t msg_param,
+		void *msg_data);
 
 const tUSBHostClassDriver uvc_driver =
 {
@@ -30,4 +32,10 @@ void * uvc_open(tUSBHostDevice *dev)
 void uvc_close(void *dev)
 {
 	return;
+}
+
+uint32_t uvc_callback(void *camera, uint32_t event, uint32_t msg_param,
+		void *msg_data)
+{
+	return 0;
 }
