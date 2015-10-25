@@ -276,7 +276,7 @@ int main(void)
 
     SysTickPeriodSet(ui32SysClock / TICKS_PER_SECOND);
     SysTickEnable();
-    SysTickIntEnable();
+    //SysTickIntEnable();
 
     SysCtlPeripheralEnable(SYSCTL_PERIPH_UDMA);
     uDMAEnable();
