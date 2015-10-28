@@ -63,6 +63,7 @@ void configure_pins()
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOD);
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOL);
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPION);
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOQ);
 
     HWREG(GPIO_PORTD_BASE + GPIO_O_LOCK) = GPIO_LOCK_KEY;
     HWREG(GPIO_PORTD_BASE + GPIO_O_CR) = 0xff;
@@ -70,6 +71,7 @@ void configure_pins()
     GPIOPinTypeUSBAnalog(GPIO_PORTB_BASE, GPIO_PIN_0 | GPIO_PIN_1);
     GPIOPinTypeUSBDigital(GPIO_PORTD_BASE, GPIO_PIN_6);
     GPIOPinTypeUSBAnalog(GPIO_PORTL_BASE, GPIO_PIN_6 | GPIO_PIN_7);
+    GPIOPinTypeGPIOInput(GPIO_PORTQ_BASE, GPIO_PIN_4);
 
     // LEDs on Eval Board
     GPIOPinTypeGPIOOutput(GPIO_PORTN_BASE, GPIO_PIN_0 | GPIO_PIN_1);
@@ -93,23 +95,24 @@ void USBHCDEvents(void *pvData)
 {
     tEventInfo *pEventInfo = (tEventInfo *) pvData;
 
-    GPIOPinWrite(GPIO_PORTN_BASE, GPIO_PIN_1, 1);
-
     switch(pEventInfo->ui32Event)
     {
         case USB_EVENT_CONNECTED:
-            if(USBHCDDevClass(pEventInfo->ui32Instance, 0) == USB_CLASS_VIDEO)
+            if (USBHCDDevClass(pEventInfo->ui32Instance, 0) == USB_CLASS_VIDEO)
             {
+                GPIOPinWrite(GPIO_PORTN_BASE, GPIO_PIN_1, 255);
                 CAMERA_STATE = CAMERA_INIT;
             }
             break;
 
         case USB_EVENT_UNKNOWN_CONNECTED:
             CAMERA_STATE = CAMERA_UNCONNECTED;
+            GPIOPinWrite(GPIO_PORTN_BASE, GPIO_PIN_0, 255);
             break;
 
         case USB_EVENT_DISCONNECTED:
             CAMERA_STATE = CAMERA_UNCONNECTED;
+            GPIOPinWrite(GPIO_PORTN_BASE, GPIO_PIN_0 | GPIO_PIN_1, 0);
             break;
 
         case USB_EVENT_POWER_FAULT:
