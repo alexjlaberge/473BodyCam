@@ -26,6 +26,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <usblib/usblib.h>
+#include <usblib/host/usbhost.h>
 
 //*****************************************************************************
 //
@@ -128,7 +129,7 @@ void (* const g_pfnVectors[])(void) =
     IntDefaultHandler,                      // CAN1
     IntDefaultHandler,                      // Ethernet
     IntDefaultHandler,                      // Hibernate
-    USB0OTGModeIntHandler,                  // USB0
+    USB0HostIntHandler,                     // USB0
     IntDefaultHandler,                      // PWM Generator 3
     IntDefaultHandler,                      // uDMA Software Transfer
     IntDefaultHandler,                      // uDMA Error
