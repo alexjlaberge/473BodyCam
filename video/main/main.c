@@ -182,7 +182,7 @@ int main(void)
 
     while (1)
     {
-    	USBOTGMain(ticks_since_last_call() * MS_PER_SYSTICK);
+        USBHCDMain();
 
         switch (CAMERA_STATE)
         {
