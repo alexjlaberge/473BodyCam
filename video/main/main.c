@@ -45,7 +45,7 @@
 
 volatile int running = 1;
 
-#define MEM_POOL_SIZE 128
+#define MEM_POOL_SIZE 1024
 uint8_t MEM_POOL[MEM_POOL_SIZE];
 
 void usb_int(void)
@@ -98,9 +98,9 @@ void USBHCDEvents(void *pvData)
     switch(pEventInfo->ui32Event)
     {
         case USB_EVENT_CONNECTED:
+            GPIOPinWrite(GPIO_PORTN_BASE, GPIO_PIN_1, 255);
             if (USBHCDDevClass(pEventInfo->ui32Instance, 0) == USB_CLASS_VIDEO)
             {
-                GPIOPinWrite(GPIO_PORTN_BASE, GPIO_PIN_1, 255);
                 CAMERA_STATE = CAMERA_INIT;
             }
             break;
@@ -168,14 +168,6 @@ int main(void)
     USBStackModeSet(0, eUSBModeHost, 0);
 
     USBHCDRegisterDrivers(0, g_ppHostClassDrivers, g_ui32NumHostClassDrivers);
-
-    //
-    // Open an instance of the keyboard driver.  The keyboard does not need
-    // to be present at this time, this just save a place for it and allows
-    // the applications to be notified when a keyboard is present.
-    //
-    //g_psKeyboardInstance = USBHKeyboardOpen(KeyboardCallback, g_pui8Buffer,
-    //                                        KEYBOARD_MEMORY_SIZE);
 
     USBHCDPowerConfigInit(0, USBHCD_VBUS_AUTO_HIGH | USBHCD_VBUS_FILTER);
     USBHCDInit(0, MEM_POOL, MEM_POOL_SIZE);
