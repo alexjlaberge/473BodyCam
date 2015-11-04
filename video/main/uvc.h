@@ -17,7 +17,21 @@
 
 #define UVC_VERSION 0x150
 
+/**
+ * @brief video class subtypes
+ */
+#define VC_DESCRIPTOR_UNDEFINED 0x00
+#define VC_HEADER 0x01
+#define VC_INPUT_TERMINAL 0x02
+#define VC_OUTPUT_TERMINAL 0x03
+#define VC_SELECTOR_UNIT 0x04
+#define VC_PROCESSING_UNIT 0x05
+#define VC_EXTENSION_UNIT 0x06
+#define VC_ENCODING_UNIT 0x07
+
 extern const tUSBHostClassDriver uvc_driver;
+
+struct uvc_enc_term_desc uvc_get_enc_term_desc(void);
 
 /**
  * @brief Video data descriptor
