@@ -19,6 +19,11 @@
 
 extern const tUSBHostClassDriver uvc_driver;
 
+/**
+ * @brief Video data descriptor
+ *
+ * @details See Table 2-5 of UVC 1.5 Specification.
+ */
 struct uvc_payload_header
 {
 	uint8_t bHeaderLength;
