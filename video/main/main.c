@@ -149,7 +149,7 @@ int main(void)
 {
     uint32_t ui32SysClock;
     CAMERA_STATE = CAMERA_UNCONNECTED;
-	struct uvc_enc_term_desc eu;
+	struct uvc_iad iad;
 
     ui32SysClock = SysCtlClockFreqSet((SYSCTL_XTAL_25MHZ |
                                            SYSCTL_OSC_MAIN |
@@ -182,7 +182,7 @@ int main(void)
             case CAMERA_INIT:
                 // USBHKeyboardInit(g_psKeyboardInstance);
                 //CAMERA_STATE = STATE_KEYBOARD_CONNECTED;
-            	eu = uvc_get_enc_term_desc();
+            	iad = uvc_get_iad();
 
             	CAMERA_STATE = CAMERA_CONNECTED;
                 break;
@@ -197,9 +197,9 @@ int main(void)
                 break;
         }
 
-        if (eu.bDescriptorSubType != VC_ENCODING_UNIT)
+        if (iad.bInterfaceCount == 0)
         {
-        	//break;
+        	break;
         }
     }
 }

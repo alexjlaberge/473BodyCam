@@ -169,3 +169,50 @@ fail:
 	uvc_enc_term_desc_init(&ret);
 	return ret;
 }
+
+struct uvc_iad uvc_get_iad(void)
+{
+	struct uvc_iad ret = {0};
+	tUSBRequest req;
+	uint32_t sent;
+
+	uvc_iad_init(&ret);
+
+	req.bmRequestType = USB_RTYPE_DIR_IN | USB_RTYPE_STANDARD |
+            USB_RTYPE_INTERFACE;
+	req.bRequest = USBREQ_GET_DESCRIPTOR;
+	req.wValue = USB_DTYPE_INTERFACE_ASC << 8;
+	req.wIndex = 0;
+	req.wLength = 8; // TODO #define this
+
+	if (!cam_inst.in_use)
+	{
+		return ret;
+	}
+
+	sent = USBHCDControlTransfer(0, &req, cam_inst.device, (uint8_t *) &ret,
+			sizeof(struct uvc_iad),
+			cam_inst.device->sDeviceDescriptor.bMaxPacketSize0);
+	if (sent != sizeof(struct uvc_iad))
+	{
+		goto fail;
+	}
+
+	return ret;
+
+fail:
+	uvc_iad_init(&ret);
+	return ret;
+}
+
+void uvc_iad_init(struct uvc_iad *iad)
+{
+	iad->bLength = 0;
+	iad->bDescriptorType = 0;
+	iad->bFirstInterface = 0;
+	iad->bInterfaceCount = 0;
+	iad->bFunctionClass = 0;
+	iad->bFunctionSubClass = 0;
+	iad->bFunctionProtocol = 0;
+	iad->iFunction = 0;
+}

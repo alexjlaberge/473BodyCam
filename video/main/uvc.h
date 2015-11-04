@@ -31,8 +31,6 @@
 
 extern const tUSBHostClassDriver uvc_driver;
 
-struct uvc_enc_term_desc uvc_get_enc_term_desc(void);
-
 /**
  * @brief Video data descriptor
  *
@@ -118,5 +116,10 @@ struct uvc_stream_ihd
 };
 
 // TODO Video Frame Descriptor, one for each format
+
+struct uvc_enc_term_desc uvc_get_enc_term_desc(void);
+
+void uvc_iad_init(struct uvc_iad *iad);
+struct uvc_iad uvc_get_iad(void);
 
 #endif /* UVC_H_ */
