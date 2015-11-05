@@ -117,6 +117,8 @@ struct uvc_stream_ihd
 
 // TODO Video Frame Descriptor, one for each format
 
+uint8_t uvc_has_error(void);
+
 struct uvc_enc_term_desc uvc_get_enc_term_desc(void);
 
 void uvc_iad_init(struct uvc_iad *iad);

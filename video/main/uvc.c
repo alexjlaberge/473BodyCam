@@ -23,6 +23,7 @@ struct usb_pipe
 struct camera_device
 {
 	tUSBHostDevice *device;
+	uint8_t has_error;
 	uint8_t in_use;
 	struct usb_pipe intr;
 	struct usb_pipe stream;
@@ -112,13 +113,44 @@ static void uvc_close(void *dev)
 
 static void uvc_pipe_cb(uint32_t pipe, uint32_t event)
 {
-	return;
+	if (pipe == cam_inst.intr.pipe)
+	{
+		if (event == USB_EVENT_ERROR)
+		{
+			cam_inst.has_error = 1;
+		}
+	}
 }
 
 uint32_t uvc_callback(void *camera, uint32_t event, uint32_t msg_param,
 		void *msg_data)
 {
 	return 0;
+}
+
+tConfigDescriptor uvc_get_config(void)
+{
+	tConfigDescriptor conf = {0};
+	tUSBRequest req;
+	uint32_t sent;
+
+	if (!cam_inst.in_use)
+	{
+		return conf;
+	}
+
+	req.bmRequestType = USB_RTYPE_DIR_IN | USB_RTYPE_STANDARD |
+			USB_RTYPE_DEVICE;
+	req.bRequest = USBREQ_GET_CONFIG;
+	req.wValue = 0;
+	req.wIndex = 0;
+	req.wLength = 1;
+
+	sent = USBHCDControlTransfer(0, &req, cam_inst.device, (uint8_t *) &conf,
+			sizeof(tConfigDescriptor),
+			cam_inst.device->sDeviceDescriptor.bMaxPacketSize0);
+
+	return conf;
 }
 
 uvc_enc_term_desc_init(struct uvc_enc_term_desc *desc)
@@ -176,19 +208,19 @@ struct uvc_iad uvc_get_iad(void)
 	tUSBRequest req;
 	uint32_t sent;
 
-	uvc_iad_init(&ret);
-
-	req.bmRequestType = USB_RTYPE_DIR_IN | USB_RTYPE_STANDARD |
-            USB_RTYPE_INTERFACE;
-	req.bRequest = USBREQ_GET_DESCRIPTOR;
-	req.wValue = USB_DTYPE_INTERFACE_ASC << 8;
-	req.wIndex = 0;
-	req.wLength = 8; // TODO #define this
-
 	if (!cam_inst.in_use)
 	{
 		return ret;
 	}
+
+	uvc_iad_init(&ret);
+
+	req.bmRequestType = USB_RTYPE_DIR_IN | USB_RTYPE_STANDARD |
+            USB_RTYPE_DEVICE;
+	req.bRequest = USBREQ_GET_DESCRIPTOR;
+	req.wValue = USB_DTYPE_INTERFACE_ASC << 8;
+	req.wIndex = 0;
+	req.wLength = sizeof(struct uvc_iad);
 
 	sent = USBHCDControlTransfer(0, &req, cam_inst.device, (uint8_t *) &ret,
 			sizeof(struct uvc_iad),
@@ -215,4 +247,9 @@ void uvc_iad_init(struct uvc_iad *iad)
 	iad->bFunctionSubClass = 0;
 	iad->bFunctionProtocol = 0;
 	iad->iFunction = 0;
+}
+
+uint8_t uvc_has_error(void)
+{
+	return cam_inst.has_error;
 }

@@ -197,7 +197,13 @@ int main(void)
                 break;
         }
 
-        if (iad.bInterfaceCount == 0)
+//        if (uvc_has_error())
+//        {
+//        	break;
+//        }
+
+        if (CAMERA_STATE == CAMERA_CONNECTED &&
+        		iad.bInterfaceCount == 0)
         {
         	break;
         }
