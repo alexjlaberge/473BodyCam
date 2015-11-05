@@ -141,10 +141,10 @@ tConfigDescriptor uvc_get_config(void)
 
 	req.bmRequestType = USB_RTYPE_DIR_IN | USB_RTYPE_STANDARD |
 			USB_RTYPE_DEVICE;
-	req.bRequest = USBREQ_GET_CONFIG;
-	req.wValue = 0;
+	req.bRequest = USBREQ_GET_DESCRIPTOR;
+	req.wValue = USB_DTYPE_CONFIGURATION << 8;
 	req.wIndex = 0;
-	req.wLength = 1;
+	req.wLength = sizeof(tConfigDescriptor);
 
 	sent = USBHCDControlTransfer(0, &req, cam_inst.device, (uint8_t *) &conf,
 			sizeof(tConfigDescriptor),

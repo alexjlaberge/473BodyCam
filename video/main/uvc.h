@@ -119,6 +119,8 @@ struct uvc_stream_ihd
 
 uint8_t uvc_has_error(void);
 
+tConfigDescriptor uvc_get_config(void);
+
 struct uvc_enc_term_desc uvc_get_enc_term_desc(void);
 
 void uvc_iad_init(struct uvc_iad *iad);
