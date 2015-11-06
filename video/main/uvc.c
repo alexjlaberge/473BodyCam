@@ -19,7 +19,14 @@ struct usb_pipe
 	uint32_t max_packet_size;
 };
 
-/* TODO Add more members as necessary */
+#define MAX_ENDPOINTS 4
+struct usb_iface
+{
+	tInterfaceDescriptor iface;
+	tEndpointDescriptor endpts[MAX_ENDPOINTS];
+};
+
+#define MAX_IFACES 4
 struct camera_device
 {
 	tUSBHostDevice *device;
@@ -27,6 +34,7 @@ struct camera_device
 	uint8_t in_use;
 	struct usb_pipe intr;
 	struct usb_pipe stream;
+	struct usb_iface ifaces[MAX_IFACES];
 };
 
 static struct camera_device cam_inst = {0};
@@ -128,11 +136,15 @@ uint32_t uvc_callback(void *camera, uint32_t event, uint32_t msg_param,
 	return 0;
 }
 
+#define BUF_SIZE 768
 tConfigDescriptor uvc_get_config(void)
 {
 	tConfigDescriptor conf = {0};
+	uint8_t all[BUF_SIZE];
 	tUSBRequest req;
 	uint32_t sent;
+	size_t i = 0;
+	size_t all_i = 0;
 
 	if (!cam_inst.in_use)
 	{
@@ -149,6 +161,45 @@ tConfigDescriptor uvc_get_config(void)
 	sent = USBHCDControlTransfer(0, &req, cam_inst.device, (uint8_t *) &conf,
 			sizeof(tConfigDescriptor),
 			cam_inst.device->sDeviceDescriptor.bMaxPacketSize0);
+
+	if (conf.wTotalLength > BUF_SIZE)
+	{
+		sent = USBHCDControlTransfer(0, &req, cam_inst.device, all,
+				BUF_SIZE, cam_inst.device->sDeviceDescriptor.bMaxPacketSize0);
+	}
+	else
+	{
+		return conf;
+	}
+
+	all_i += sizeof(tConfigDescriptor);
+	// interface and endpoint(s)
+	for (i = 0; i < conf.bNumInterfaces; i++)
+	{
+		struct usb_iface tmp;
+		size_t j = 0;
+
+		if (i == MAX_IFACES)
+		{
+			break;
+		}
+
+		// TODO fix, because the UVC iface descriptor has a different format
+		memcpy(&(tmp.iface), all + all_i, sizeof(tInterfaceDescriptor));
+		all_i += sizeof(tInterfaceDescriptor);
+
+		for (j = 0; j < tmp.iface.bNumEndpoints; j++)
+		{
+			if (j == MAX_ENDPOINTS)
+			{
+				break;
+			}
+			memcpy(all + all_i, tmp.endpts + j, sizeof(tEndpointDescriptor));
+			all_i += sizeof(tEndpointDescriptor);
+		}
+
+		cam_inst.ifaces[i] = tmp;
+	}
 
 	return conf;
 }
