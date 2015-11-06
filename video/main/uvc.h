@@ -10,6 +10,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 #include <usblib/usblib.h>
 
@@ -17,17 +18,20 @@
 
 #define UVC_VERSION 0x150
 
+// TODO
+#define UVC_VC_HEADER 0
+
 /**
  * @brief video class subtypes
  */
-#define VC_DESCRIPTOR_UNDEFINED 0x00
-#define VC_HEADER 0x01
-#define VC_INPUT_TERMINAL 0x02
-#define VC_OUTPUT_TERMINAL 0x03
-#define VC_SELECTOR_UNIT 0x04
-#define VC_PROCESSING_UNIT 0x05
-#define VC_EXTENSION_UNIT 0x06
-#define VC_ENCODING_UNIT 0x07
+#define UVC_DESCRIPTOR_UNDEFINED 0x00
+#define UVC_HEADER 0x01
+#define UVC_INPUT_TERMINAL 0x02
+#define UVC_OUTPUT_TERMINAL 0x03
+#define UVC_SELECTOR_UNIT 0x04
+#define UVC_PROCESSING_UNIT 0x05
+#define UVC_EXTENSION_UNIT 0x06
+#define UVC_ENCODING_UNIT 0x07
 
 extern const tUSBHostClassDriver uvc_driver;
 
@@ -69,6 +73,18 @@ struct uvc_ihd
 	uint8_t *baInterfaceNr;
 };
 
+struct uvc_out_term_desc
+{
+	uint8_t bLength;
+	uint8_t bDescriptorType;
+	uint8_t bDescriptorSubtype;
+	uint8_t bTerminalID;
+	uint16_t bTerminalType;
+	uint8_t bAssocTerminal;
+	uint8_t bSourceID;
+	uint8_t iTerminal;
+};
+
 struct uvc_cam_term_desc
 {
 	uint8_t bLength;
@@ -85,7 +101,7 @@ struct uvc_cam_term_desc
 	uint8_t bmControls[3];
 };
 
-struct uvc_enc_term_desc
+struct uvc_enc_unit_desc
 {
 	uint8_t bLength;
 	uint8_t bDescriptorType;
@@ -121,9 +137,79 @@ uint8_t uvc_has_error(void);
 
 tConfigDescriptor uvc_get_config(void);
 
-struct uvc_enc_term_desc uvc_get_enc_term_desc(void);
+struct uvc_enc_unit_desc uvc_get_enc_term_desc(void);
 
 void uvc_iad_init(struct uvc_iad *iad);
 struct uvc_iad uvc_get_iad(void);
+
+/**
+ * @brief Parse an Interface Association Descriptor
+ * @param buf Raw USB data buffer
+ * @param max_len Maximum length to parse
+ * @return The amount of data parsed
+ */
+size_t uvc_parse_iad(uint8_t *buf, size_t max_len);
+
+/**
+ * @brief Parse a Video Class Interface Descriptor
+ * @param buf Raw USB data buffer
+ * @param max_len Maximum length to parse
+ * @return The amount of data parsed
+ */
+size_t uvc_parse_vcid(uint8_t *buf, size_t max_len);
+
+/**
+ * @brief Parse a Class Specific Video Class Interface Descriptor
+ * @param buf Raw USB data buffer
+ * @param max_len Maximum length to parse
+ * @return The amount of data parsed
+ */
+size_t uvc_parse_csvcid(uint8_t *buf, size_t max_len);
+
+/**
+ * @brief Parse an Input Terminal Descriptor
+ * @param buf Raw USB data buffer
+ * @param max_len Maximum length to parse
+ * @return The amount of data parsed
+ */
+size_t uvc_parse_input_terminal(uint8_t *buf, size_t max_len);
+
+/**
+ * @brief Parse an Output Terminal Descriptor
+ * @param buf Raw USB data buffer
+ * @param max_len Maximum length to parse
+ * @return The amount of data parsed
+ */
+size_t uvc_parse_output_terminal(uint8_t *buf, size_t max_len);
+
+/**
+ * @brief Parse a Selector Unit Descriptor
+ * @param buf Raw USB data buffer
+ * @param max_len Maximum length to parse
+ * @return The amount of data parsed
+ */
+size_t uvc_parse_selector_unit(uint8_t *buf, size_t max_len);
+
+/**
+ * @brief Parse a Processing Unit Descriptor
+ * @param buf Raw USB data buffer
+ * @param max_len Maximum length to parse
+ * @return The amount of data parsed
+ */
+size_t uvc_parse_processing_unit(uint8_t *buf, size_t max_len);
+
+/**
+ * @brief Parse an Encoding Unit Descriptor
+ * @param buf Raw USB data buffer
+ * @param max_len Maximum length to parse
+ * @return The amount of data parsed
+ */
+size_t uvc_parse_encoding_unit(uint8_t *buf, size_t max_len);
+
+/**
+ * @brief Parse all the config from the device
+ * @param size Size of the entire config
+ */
+void uvc_parse_all_config(size_t size);
 
 #endif /* UVC_H_ */
