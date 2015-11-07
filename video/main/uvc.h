@@ -101,6 +101,20 @@ struct uvc_cam_term_desc
 	uint8_t bmControls[3];
 };
 
+struct uvc_proc_unit_desc
+{
+	uint8_t bLength;
+	uint8_t bDescriptorType;
+	uint8_t bDescriptorSubtype;
+	uint8_t bUnitID;
+	uint8_t bSourceID;
+	uint16_t wMaxMultiplier;
+	uint8_t bControlSize;
+	uint8_t bmControls[3];
+	uint8_t iProcessing;
+	uint8_t bmVideoStandards;
+};
+
 struct uvc_enc_unit_desc
 {
 	uint8_t bLength;
@@ -129,6 +143,16 @@ struct uvc_stream_ihd
 	uint8_t bTriggerUsage;
 	uint8_t bControlSize;
 	uint8_t *bmaControls;
+};
+
+struct uvc_iso_endpt_desc
+{
+	uint8_t bLength;
+	uint8_t bDescriptorType;
+	uint8_t bEndpointAddress;
+	uint8_t bmAttributes;
+	uint16_t wMaxPacketSize;
+	uint8_t bInterval;
 };
 
 // TODO Video Frame Descriptor, one for each format
@@ -175,6 +199,14 @@ size_t uvc_parse_csvcid(uint8_t *buf, size_t max_len);
 size_t uvc_parse_input_terminal(uint8_t *buf, size_t max_len);
 
 /**
+ * @brief Parse a Camera Terminal Descriptor
+ * @param buf Raw USB data buffer
+ * @param max_len Maximum length to parse
+ * @return The amount of data parsed
+ */
+size_t uvc_parse_camera_terminal(uint8_t *buf, size_t max_len);
+
+/**
  * @brief Parse an Output Terminal Descriptor
  * @param buf Raw USB data buffer
  * @param max_len Maximum length to parse
@@ -205,6 +237,14 @@ size_t uvc_parse_processing_unit(uint8_t *buf, size_t max_len);
  * @return The amount of data parsed
  */
 size_t uvc_parse_encoding_unit(uint8_t *buf, size_t max_len);
+
+/**
+ * @brief Parse an Isochronous Endpoint Descriptor
+ * @param buf Raw USB data buffer
+ * @param max_len Maximum length to parse
+ * @return The amount of data parsed
+ */
+size_t uvc_parse_isoc_endpoint(uint8_t *buf, size_t max_len);
 
 /**
  * @brief Parse all the config from the device

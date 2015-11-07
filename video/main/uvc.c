@@ -39,6 +39,10 @@ struct camera_device
 	uint16_t uvc_version;
 	uint8_t nifaces;
 	struct uvc_out_term_desc output_terminal;
+	struct uvc_cam_term_desc camera_terminal;
+	struct uvc_proc_unit_desc proc_unit;
+	struct uvc_enc_unit_desc enc_unit;
+	struct uvc_iso_endpt_desc iso_endpt;
 };
 
 static struct camera_device cam_inst = {0};
@@ -216,7 +220,10 @@ void uvc_parse_all_config(size_t size)
 			i += uvc_parse_vcid(buf + i, desc_len);
 			break;
 		case USB_DTYPE_CS_INTERFACE:
-			i += uvc_parse_csvcid(buf + i, desc_len);
+			i += uvc_parse_csvcid(buf + i, len - i);
+			break;
+		case USB_DTYPE_ENDPOINT:
+			i += uvc_parse_isoc_endpoint(buf + i, desc_len);
 			break;
 		default:
 			break;
@@ -369,18 +376,20 @@ size_t uvc_parse_csvcid(uint8_t *buf, size_t max_len)
 	subtype = buf[2];
 	if (len < 12 ||
 		type != USB_DTYPE_CS_INTERFACE ||
-		subtype != UVC_VC_HEADER)
+		subtype != UVC_HEADER)
 	{
 		return 0;
 	}
 
-	cam_inst.uvc_version = (buf[3] << 8) + buf[4];
+	uint16_t *tmp = (uint16_t *) (buf + 3);
+	cam_inst.uvc_version = *tmp;
 	if (cam_inst.uvc_version != UVC_VERSION)
 	{
-		return 0;
+		//return 0;
 	}
 
-	total_len = (buf[5] << 8) + buf[6];
+	tmp = (uint16_t *) (buf + 5);
+	total_len = *tmp;
 
 	cam_inst.nifaces = buf[11];
 
@@ -391,7 +400,17 @@ size_t uvc_parse_csvcid(uint8_t *buf, size_t max_len)
 		type = buf[i + 1];
 		subtype = buf[i + 2];
 
-		if (type != USB_DTYPE_CS_INTERFACE)
+		if (type == USB_DTYPE_ENDPOINT)
+		{
+			i += uvc_parse_isoc_endpoint(buf + i, max_len - i);
+			continue;
+		}
+		else if (type == USB_DTYPE_CS_INTERFACE)
+		{
+			/* FALLTHROUGH */
+			/* go to switch below */
+		}
+		else
 		{
 			i += len;
 			continue;
@@ -425,6 +444,11 @@ size_t uvc_parse_csvcid(uint8_t *buf, size_t max_len)
 
 size_t uvc_parse_input_terminal(uint8_t *buf, size_t max_len)
 {
+	if (max_len > 0)
+	{
+		return buf[0];
+	}
+
 	return 0;
 }
 
@@ -440,17 +464,66 @@ size_t uvc_parse_output_terminal(uint8_t *buf, size_t max_len)
 	return sizeof(struct uvc_out_term_desc);
 }
 
+size_t uvc_parse_camera_terminal(uint8_t *buf, size_t max_len)
+{
+	if (max_len < sizeof(struct uvc_cam_term_desc))
+	{
+		return 0;
+	}
+
+	memcpy(&cam_inst.camera_terminal, buf, sizeof(struct uvc_cam_term_desc));
+
+	return sizeof(struct uvc_cam_term_desc);
+}
+
 size_t uvc_parse_selector_unit(uint8_t *buf, size_t max_len)
 {
-	return 0;
+	// TODO this is basically a no-op
+	return buf[0];
 }
 
 size_t uvc_parse_processing_unit(uint8_t *buf, size_t max_len)
 {
-	return 0;
+	if (max_len < sizeof(struct uvc_proc_unit_desc))
+	{
+		return 0;
+	}
+
+	memcpy(&cam_inst.proc_unit, buf, sizeof(struct uvc_proc_unit_desc));
+
+	return sizeof(struct uvc_proc_unit_desc);
 }
 
 size_t uvc_parse_encoding_unit(uint8_t *buf, size_t max_len)
 {
+	if (max_len < sizeof(struct uvc_enc_unit_desc))
+	{
+		return 0;
+	}
+
+	memcpy(&cam_inst.enc_unit, buf, sizeof(struct uvc_enc_unit_desc));
+
+	return sizeof(struct uvc_enc_unit_desc);
+}
+
+size_t uvc_parse_isoc_endpoint(uint8_t *buf, size_t max_len)
+{
+	struct uvc_iso_endpt_desc tmp;
+
+	if (max_len < sizeof(struct uvc_iso_endpt_desc))
+	{
+		return 0;
+	}
+
+	memcpy(&tmp, buf, sizeof(struct uvc_iso_endpt_desc));
+
+	if (tmp.bDescriptorType == USB_DTYPE_ENDPOINT &&
+		(tmp.bEndpointAddress & USB_RTYPE_DIR_IN) &&
+		(tmp.bmAttributes & 0x03))
+	{
+		cam_inst.iso_endpt = tmp;
+		return sizeof(struct uvc_iso_endpt_desc);
+	}
+
 	return 0;
 }
