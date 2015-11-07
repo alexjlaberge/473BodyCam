@@ -250,6 +250,14 @@ size_t uvc_parse_processing_unit(uint8_t *buf, size_t max_len);
 size_t uvc_parse_encoding_unit(uint8_t *buf, size_t max_len);
 
 /**
+ * @brief Parse an Encoding Unit Descriptor
+ * @param buf Raw USB data buffer
+ * @param max_len Maximum length to parse
+ * @return The amount of data parsed
+ */
+size_t uvc_parse_extension_unit(uint8_t *buf, size_t max_len);
+
+/**
  * @brief Parse an Isochronous Endpoint Descriptor
  * @param buf Raw USB data buffer
  * @param max_len Maximum length to parse

@@ -434,6 +434,9 @@ size_t uvc_parse_csvcid(uint8_t *buf, size_t max_len)
 		case UVC_SELECTOR_UNIT:
 			len = uvc_parse_selector_unit(buf + i, max_len - i);
 			break;
+		case UVC_EXTENSION_UNIT:
+			len = uvc_parse_extension_unit(buf + i, max_len - i);
+			break;
 		default:
 			break;
 		}
@@ -593,7 +596,7 @@ size_t uvc_parse_processing_unit(uint8_t *buf, size_t max_len)
 	cam_inst.proc_unit.iProcessing = buf[11];
 	cam_inst.proc_unit.bmVideoStandards = buf[12];
 
-	return UVC_PROC_UNIT_SIZE;
+	return len;
 }
 
 size_t uvc_parse_encoding_unit(uint8_t *buf, size_t max_len)
@@ -659,4 +662,9 @@ size_t uvc_parse_isoc_endpoint(uint8_t *buf, size_t max_len)
 	}
 
 	return 0;
+}
+
+size_t uvc_parse_extension_unit(uint8_t *buf, size_t max_len)
+{
+	return buf[0];
 }
