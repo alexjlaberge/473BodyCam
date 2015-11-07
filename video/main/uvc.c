@@ -236,18 +236,14 @@ uvc_enc_unit_desc_init(struct uvc_enc_unit_desc *desc)
 	size_t i = 0;
 
 	desc->bControlSize = 0;
-	desc->bDescriptorSubType = 0;
+	desc->bDescriptorSubtype = 0;
 	desc->bDescriptorType = 0;
 	desc->bUnitID = 0;
 	desc->bSourceID = 0;
 	desc->iEncoding = 0;
 	desc->bControlSize = 0;
-
-	for (i = 0; i < 3; i++)
-	{
-		desc->bmControls[i] = 0;
-		desc->bmControlsRuntime[i] = 0;
-	}
+	desc->bmControls = 0;
+	desc->bmControlsRuntime = 0;
 }
 
 struct uvc_enc_unit_desc uvc_get_enc_term_desc(void)
@@ -339,7 +335,12 @@ size_t uvc_parse_iad(uint8_t *buf, size_t max_len)
 		buf[1] == USB_DTYPE_INTERFACE_ASC)
 	{
 		memcpy((uint8_t *) &cam_inst.iad, buf, sizeof(struct uvc_iad));
-		return sizeof(struct uvc_iad);
+
+		if (cam_inst.iad.bFunctionClass == USB_CLASS_VIDEO &&
+			cam_inst.iad.bFunctionSubClass == UVC_SC_VIDEO_INTERFACE_COLLECTION)
+		{
+			return sizeof(struct uvc_iad);
+		}
 	}
 
 	return 0;
@@ -347,12 +348,19 @@ size_t uvc_parse_iad(uint8_t *buf, size_t max_len)
 
 size_t uvc_parse_vcid(uint8_t *buf, size_t max_len)
 {
+	tInterfaceDescriptor tmp;
+
 	if (sizeof(tInterfaceDescriptor) <= max_len &&
 		buf[0] == sizeof(tInterfaceDescriptor) &&
 		buf[1] == USB_DTYPE_INTERFACE)
 	{
-		/* TODO Implement a memcpy to something */
-		return sizeof(tInterfaceDescriptor);
+		memcpy(&tmp, buf, sizeof(tInterfaceDescriptor));
+
+		if (tmp.bInterfaceClass == USB_CLASS_VIDEO &&
+			tmp.bInterfaceSubClass == UVC_SC_VIDEOCONTROL)
+		{
+			return sizeof(tInterfaceDescriptor);
+		}
 	}
 
 	return 0;
@@ -412,8 +420,7 @@ size_t uvc_parse_csvcid(uint8_t *buf, size_t max_len)
 		}
 		else
 		{
-			i += len;
-			continue;
+			return i;
 		}
 
 		switch (subtype)
@@ -484,45 +491,101 @@ size_t uvc_parse_selector_unit(uint8_t *buf, size_t max_len)
 
 size_t uvc_parse_processing_unit(uint8_t *buf, size_t max_len)
 {
-	if (max_len < sizeof(struct uvc_proc_unit_desc))
+	uint16_t *tmp;
+	uint32_t *ctrl;
+	size_t len;
+
+	if (max_len < UVC_PROC_UNIT_SIZE)
 	{
 		return 0;
 	}
 
-	memcpy(&cam_inst.proc_unit, buf, sizeof(struct uvc_proc_unit_desc));
+	len = buf[0];
+	if (buf[1] != USB_DTYPE_CS_INTERFACE ||
+		buf[2] != UVC_PROCESSING_UNIT)
+	{
+		return 0;
+	}
 
-	return sizeof(struct uvc_proc_unit_desc);
+	cam_inst.proc_unit.bLength = buf[0];
+	cam_inst.proc_unit.bDescriptorType = buf[1];
+	cam_inst.proc_unit.bDescriptorSubtype = buf[2];
+	cam_inst.proc_unit.bUnitID = buf[3];
+	cam_inst.proc_unit.bSourceID = buf[4];
+
+	tmp = (uint16_t *) (buf + 5);
+	cam_inst.proc_unit.wMaxMultiplier = *tmp;
+
+	cam_inst.proc_unit.bControlSize = buf[7];
+
+	ctrl = (uint32_t *) (buf + 8);
+	cam_inst.proc_unit.bmControls = *ctrl & 0x00FFFFFF;
+	cam_inst.proc_unit.iProcessing = buf[11];
+	cam_inst.proc_unit.bmVideoStandards = buf[12];
+
+	return UVC_PROC_UNIT_SIZE;
 }
 
 size_t uvc_parse_encoding_unit(uint8_t *buf, size_t max_len)
 {
-	if (max_len < sizeof(struct uvc_enc_unit_desc))
+	uint32_t *tmp;
+
+	if (max_len < UVC_ENC_UNIT_SIZE)
 	{
 		return 0;
 	}
 
-	memcpy(&cam_inst.enc_unit, buf, sizeof(struct uvc_enc_unit_desc));
+	if (buf[0] != UVC_ENC_UNIT_SIZE ||
+		buf[1] != USB_DTYPE_CS_INTERFACE ||
+		buf[2] != UVC_ENCODING_UNIT)
+	{
+		return 0;
+	}
 
-	return sizeof(struct uvc_enc_unit_desc);
+	cam_inst.enc_unit.bLength = buf[0];
+	cam_inst.enc_unit.bDescriptorType = buf[1];
+	cam_inst.enc_unit.bDescriptorSubtype = buf[2];
+
+	cam_inst.enc_unit.bUnitID = buf[3];
+	cam_inst.enc_unit.bSourceID = buf[4];
+	cam_inst.enc_unit.iEncoding = buf[5];
+	cam_inst.enc_unit.bControlSize = buf[6];
+
+	tmp = (uint32_t *) (buf + 7);
+	cam_inst.enc_unit.bmControls = *tmp & 0x00FFFFFF;
+
+	tmp = (uint32_t *) (buf + 10);
+	cam_inst.enc_unit.bmControlsRuntime = *tmp & 0x00FFFFFF;
+
+	return UVC_ENC_UNIT_SIZE;
 }
 
 size_t uvc_parse_isoc_endpoint(uint8_t *buf, size_t max_len)
 {
-	struct uvc_iso_endpt_desc tmp;
+	struct uvc_iso_endpt_desc endpt;
+	uint16_t *tmp;
 
-	if (max_len < sizeof(struct uvc_iso_endpt_desc))
+	if (max_len < UVC_ISO_ENDPT_SIZE)
 	{
 		return 0;
 	}
 
-	memcpy(&tmp, buf, sizeof(struct uvc_iso_endpt_desc));
+	endpt.bLength = buf[0];
+	endpt.bDescriptorType = buf[1];
+	endpt.bEndpointAddress = buf[2];
+	endpt.bmAttributes = buf[3];
 
-	if (tmp.bDescriptorType == USB_DTYPE_ENDPOINT &&
-		(tmp.bEndpointAddress & USB_RTYPE_DIR_IN) &&
-		(tmp.bmAttributes & 0x03))
+	tmp = (uint16_t *) (buf + 4);
+	endpt.wMaxPacketSize = *tmp;
+
+	endpt.bInterval = buf[6];
+
+	if (endpt.bDescriptorType == USB_DTYPE_ENDPOINT &&
+		(endpt.bEndpointAddress & USB_RTYPE_DIR_IN) &&
+		(endpt.bmAttributes & 0x03))
 	{
-		cam_inst.iso_endpt = tmp;
-		return sizeof(struct uvc_iso_endpt_desc);
+		cam_inst.iso_endpt = endpt;
+		return UVC_ISO_ENDPT_SIZE;
 	}
 
 	return 0;

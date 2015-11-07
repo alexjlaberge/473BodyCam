@@ -17,6 +17,10 @@
 #include <usblib/host/usbhost.h>
 
 #define UVC_VERSION 0x150
+#define UVC_SC_UNDEFINED 0x00
+#define UVC_SC_VIDEOCONTROL 0x01
+#define UVC_SC_VIDEOSTREAMING 0x02
+#define UVC_SC_VIDEO_INTERFACE_COLLECTION 0x03
 
 // TODO
 #define UVC_VC_HEADER 0
@@ -32,6 +36,13 @@
 #define UVC_PROCESSING_UNIT 0x05
 #define UVC_EXTENSION_UNIT 0x06
 #define UVC_ENCODING_UNIT 0x07
+
+/**
+ * @brief some packet lengths
+ */
+#define UVC_PROC_UNIT_SIZE 13
+#define UVC_ENC_UNIT_SIZE 13
+#define UVC_ISO_ENDPT_SIZE 7
 
 extern const tUSBHostClassDriver uvc_driver;
 
@@ -98,7 +109,7 @@ struct uvc_cam_term_desc
 	uint16_t wObjectiveFocalLengthMax;
 	uint16_t wOcularFocalLength;
 	uint8_t bControlSize;
-	uint8_t bmControls[3];
+	uint32_t bmControls;
 };
 
 struct uvc_proc_unit_desc
@@ -110,7 +121,7 @@ struct uvc_proc_unit_desc
 	uint8_t bSourceID;
 	uint16_t wMaxMultiplier;
 	uint8_t bControlSize;
-	uint8_t bmControls[3];
+	uint32_t bmControls;
 	uint8_t iProcessing;
 	uint8_t bmVideoStandards;
 };
@@ -119,13 +130,13 @@ struct uvc_enc_unit_desc
 {
 	uint8_t bLength;
 	uint8_t bDescriptorType;
-	uint8_t bDescriptorSubType;
+	uint8_t bDescriptorSubtype;
 	uint8_t bUnitID;
 	uint8_t bSourceID;
 	uint8_t iEncoding;
 	uint8_t bControlSize;
-	uint8_t bmControls[3];
-	uint8_t bmControlsRuntime[3];
+	uint32_t bmControls;
+	uint32_t bmControlsRuntime;
 };
 
 struct uvc_stream_ihd
