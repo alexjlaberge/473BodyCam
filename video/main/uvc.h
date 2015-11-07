@@ -22,7 +22,6 @@
 #define UVC_SC_VIDEOSTREAMING 0x02
 #define UVC_SC_VIDEO_INTERFACE_COLLECTION 0x03
 
-// TODO
 #define UVC_VC_HEADER 0
 
 /**
@@ -37,9 +36,12 @@
 #define UVC_EXTENSION_UNIT 0x06
 #define UVC_ENCODING_UNIT 0x07
 
+#define UVC_INPUT_TERMINAL_CAMERA 0x0201
+
 /**
  * @brief some packet lengths
  */
+#define UVC_CAM_TERM_SIZE 18
 #define UVC_PROC_UNIT_SIZE 13
 #define UVC_ENC_UNIT_SIZE 13
 #define UVC_ISO_ENDPT_SIZE 7
@@ -90,7 +92,7 @@ struct uvc_out_term_desc
 	uint8_t bDescriptorType;
 	uint8_t bDescriptorSubtype;
 	uint8_t bTerminalID;
-	uint16_t bTerminalType;
+	uint16_t wTerminalType;
 	uint8_t bAssocTerminal;
 	uint8_t bSourceID;
 	uint8_t iTerminal;
@@ -100,7 +102,7 @@ struct uvc_cam_term_desc
 {
 	uint8_t bLength;
 	uint8_t bDescriptorType;
-	uint8_t bDescriptorSubType;
+	uint8_t bDescriptorSubtype;
 	uint8_t bTerminalID;
 	uint16_t wTerminalType;
 	uint8_t bAssocTerminal;
@@ -171,8 +173,6 @@ struct uvc_iso_endpt_desc
 uint8_t uvc_has_error(void);
 
 tConfigDescriptor uvc_get_config(void);
-
-struct uvc_enc_unit_desc uvc_get_enc_term_desc(void);
 
 void uvc_iad_init(struct uvc_iad *iad);
 struct uvc_iad uvc_get_iad(void);

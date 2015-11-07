@@ -124,6 +124,7 @@ fail:
 static void uvc_close(void *dev)
 {
 	/* TODO add USBHCDPipeFree() calls */
+	cam_inst.in_use = 0;
 	return;
 }
 
@@ -184,11 +185,12 @@ void uvc_parse_all_config(size_t size)
 	uint8_t buf[BUF_SIZE];
 	uint32_t len;
 	size_t i, iface, endpt;
+	size_t procd;
 
 	req.bmRequestType = USB_RTYPE_DIR_IN | USB_RTYPE_STANDARD |
 			USB_RTYPE_DEVICE;
 	req.bRequest = USBREQ_GET_DESCRIPTOR;
-	req.wValue = USB_DTYPE_CONFIGURATION << 8;
+	req.wValue = (USB_DTYPE_CONFIGURATION << 8) | 0;
 	req.wIndex = 0;
 	req.wLength = size;
 
@@ -210,24 +212,56 @@ void uvc_parse_all_config(size_t size)
 		// The first byte in every descriptor is the length
 		desc_len = buf[i];
 		desc_type = buf[i + 1];
+		procd = 0;
 
 		switch (desc_type)
 		{
-		case USB_DTYPE_INTERFACE_ASC:
-			i += uvc_parse_iad(buf + i, desc_len);
-			break;
-		case USB_DTYPE_INTERFACE:
-			i += uvc_parse_vcid(buf + i, desc_len);
+		case USB_DTYPE_CONFIGURATION:
+			procd = buf[i];
 			break;
 		case USB_DTYPE_CS_INTERFACE:
-			i += uvc_parse_csvcid(buf + i, len - i);
+			procd = uvc_parse_csvcid(buf + i, len - i);
+			break;
+		case USB_DTYPE_DEVICE:
+			procd = buf[i];
+			break;
+		case USB_DTYPE_DEVICE_QUAL:
+			procd = buf[i];
 			break;
 		case USB_DTYPE_ENDPOINT:
-			i += uvc_parse_isoc_endpoint(buf + i, desc_len);
+			procd = uvc_parse_isoc_endpoint(buf + i, len - i);
+			break;
+		case USB_DTYPE_HUB:
+			procd = buf[i];
+			break;
+		case USB_DTYPE_INTERFACE:
+			procd = uvc_parse_vcid(buf + i, len - i);
+			break;
+		case USB_DTYPE_INTERFACE_ASC:
+			procd = uvc_parse_iad(buf + i, len - i);
+			break;
+		case USB_DTYPE_INTERFACE_PWR:
+			procd = buf[i];
+			break;
+		case USB_DTYPE_OSPEED_CONF:
+			procd = buf[i];
+			break;
+		case USB_DTYPE_OTG:
+			procd = buf[i];
+			break;
+		case USB_DTYPE_STRING:
+			procd = buf[i];
 			break;
 		default:
 			break;
 		}
+
+		if (procd == 0)
+		{
+			return;
+		}
+
+		i += procd;
 	}
 }
 
@@ -244,36 +278,6 @@ uvc_enc_unit_desc_init(struct uvc_enc_unit_desc *desc)
 	desc->bControlSize = 0;
 	desc->bmControls = 0;
 	desc->bmControlsRuntime = 0;
-}
-
-struct uvc_enc_unit_desc uvc_get_enc_term_desc(void)
-{
-	struct uvc_enc_unit_desc ret = {0};
-	tUSBRequest req;
-	uint32_t sent;
-
-	uvc_enc_unit_desc_init(&ret);
-
-	/* TODO actually implement the request */
-
-	if (!cam_inst.in_use)
-	{
-		return ret;
-	}
-
-	sent = USBHCDControlTransfer(0, &req, cam_inst.device, (uint8_t *) &ret,
-			sizeof(struct uvc_enc_unit_desc),
-			cam_inst.device->sDeviceDescriptor.bMaxPacketSize0);
-	if (sent != sizeof(struct uvc_enc_unit_desc))
-	{
-		goto fail;
-	}
-
-	return ret;
-
-fail:
-	uvc_enc_unit_desc_init(&ret);
-	return ret;
 }
 
 struct uvc_iad uvc_get_iad(void)
@@ -404,83 +408,149 @@ size_t uvc_parse_csvcid(uint8_t *buf, size_t max_len)
 	i = len;
 	while (i < total_len && i < max_len)
 	{
-		len = buf[i];
+		len = 0;
 		type = buf[i + 1];
 		subtype = buf[i + 2];
 
-		if (type == USB_DTYPE_ENDPOINT)
+		if (type != USB_DTYPE_CS_INTERFACE)
 		{
-			i += uvc_parse_isoc_endpoint(buf + i, max_len - i);
-			continue;
-		}
-		else if (type == USB_DTYPE_CS_INTERFACE)
-		{
-			/* FALLTHROUGH */
-			/* go to switch below */
-		}
-		else
-		{
-			return i;
+			break;
 		}
 
 		switch (subtype)
 		{
+		case UVC_ENCODING_UNIT:
+			len = uvc_parse_encoding_unit(buf + i, max_len - i);
+			break;
 		case UVC_INPUT_TERMINAL:
-			i += uvc_parse_input_terminal(buf + i, max_len - i);
+			len = uvc_parse_input_terminal(buf + i, max_len - i);
 			break;
 		case UVC_OUTPUT_TERMINAL:
-			i += uvc_parse_output_terminal(buf + i, max_len - i);
-			break;
-		case UVC_SELECTOR_UNIT:
-			i += uvc_parse_selector_unit(buf + i, max_len - i);
+			len = uvc_parse_output_terminal(buf + i, max_len - i);
 			break;
 		case UVC_PROCESSING_UNIT:
-			i += uvc_parse_processing_unit(buf + i, max_len - i);
+			len = uvc_parse_processing_unit(buf + i, max_len - i);
 			break;
-		case UVC_ENCODING_UNIT:
-			i += uvc_parse_encoding_unit(buf + i, max_len - i);
+		case UVC_SELECTOR_UNIT:
+			len = uvc_parse_selector_unit(buf + i, max_len - i);
 			break;
 		default:
-			i += len;
 			break;
 		}
+
+		if (len == 0)
+		{
+			break;
+		}
+
+		i += len;
 	}
 
 	return i;
 }
 
+#define UVC_INPUT_TERM_MIN_LENGTH 8
 size_t uvc_parse_input_terminal(uint8_t *buf, size_t max_len)
 {
-	if (max_len > 0)
-	{
-		return buf[0];
-	}
+	uint8_t len;
+	uint16_t *tmp;
 
-	return 0;
-}
-
-size_t uvc_parse_output_terminal(uint8_t *buf, size_t max_len)
-{
-	if (max_len < sizeof(struct uvc_out_term_desc))
+	if (max_len < UVC_INPUT_TERM_MIN_LENGTH ||
+		buf[0] < UVC_INPUT_TERM_MIN_LENGTH)
 	{
 		return 0;
 	}
 
-	memcpy(&cam_inst.output_terminal, buf, sizeof(struct uvc_out_term_desc));
+	tmp = (uint16_t *) (buf + 4);
+	if (*tmp == UVC_INPUT_TERMINAL_CAMERA)
+	{
+		return uvc_parse_camera_terminal(buf, max_len);
+	}
 
-	return sizeof(struct uvc_out_term_desc);
+	len = buf[0];
+
+	return len;
+}
+
+#define UVC_OUT_TERM_MIN_LENGTH 9
+size_t uvc_parse_output_terminal(uint8_t *buf, size_t max_len)
+{
+	uint16_t *tmp;
+	struct uvc_out_term_desc term;
+
+	if (max_len < UVC_OUT_TERM_MIN_LENGTH)
+	{
+		return 0;
+	}
+
+	term.bLength = buf[0];
+	term.bDescriptorType = buf[1];
+	term.bDescriptorSubtype = buf[2];
+	term.bTerminalID = buf[3];
+
+	tmp = (uint16_t *) (buf + 4);
+
+	term.wTerminalType = *tmp;
+	term.bAssocTerminal = buf[6];
+	term.bSourceID = buf[7];
+	term.iTerminal = buf[8];
+
+	if (term.bLength < UVC_OUT_TERM_MIN_LENGTH ||
+		term.bDescriptorType != USB_DTYPE_CS_INTERFACE ||
+		term.bDescriptorSubtype != UVC_OUTPUT_TERMINAL)
+	{
+		return 0;
+	}
+
+	cam_inst.output_terminal = term;
+	return term.bLength;
 }
 
 size_t uvc_parse_camera_terminal(uint8_t *buf, size_t max_len)
 {
-	if (max_len < sizeof(struct uvc_cam_term_desc))
+	struct uvc_cam_term_desc term;
+	uint16_t *tmp;
+	uint32_t *tmp32;
+
+	if (max_len < UVC_CAM_TERM_SIZE)
 	{
 		return 0;
 	}
 
-	memcpy(&cam_inst.camera_terminal, buf, sizeof(struct uvc_cam_term_desc));
+	term.bLength = buf[0];
+	term.bDescriptorType = buf[1];
+	term.bDescriptorSubtype = buf[2];
+	term.bTerminalID = buf[3];
 
-	return sizeof(struct uvc_cam_term_desc);
+	tmp = (uint16_t *) (buf + 4);
+	term.wTerminalType = *tmp;
+
+	term.bAssocTerminal = buf[6];
+	term.iTerminal = buf[7];
+
+	tmp = (uint16_t *) (buf + 8);
+	term.wObjectiveFocalLengthMin = *tmp;
+
+	tmp = (uint16_t *) (buf + 10);
+	term.wObjectiveFocalLengthMax = *tmp;
+
+	tmp = (uint16_t *) (buf + 12);
+	term.wOcularFocalLength = *tmp;
+
+	term.bControlSize = buf[14];
+
+	tmp32 = (uint32_t *) (buf + 15);
+	term.bmControls = *tmp & 0x00FFFFFF;
+
+	if (term.bLength != UVC_CAM_TERM_SIZE ||
+		term.bDescriptorType != USB_DTYPE_CS_INTERFACE ||
+		term.bDescriptorSubtype != UVC_INPUT_TERMINAL)
+	{
+		return 0;
+	}
+
+	cam_inst.camera_terminal = term;
+	return UVC_CAM_TERM_SIZE;
 }
 
 size_t uvc_parse_selector_unit(uint8_t *buf, size_t max_len)
