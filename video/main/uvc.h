@@ -22,21 +22,42 @@
 #define UVC_SC_VIDEOSTREAMING 0x02
 #define UVC_SC_VIDEO_INTERFACE_COLLECTION 0x03
 
-#define UVC_VC_HEADER 0
-
 /**
  * @brief video class subtypes
  */
-#define UVC_DESCRIPTOR_UNDEFINED 0x00
-#define UVC_HEADER 0x01
-#define UVC_INPUT_TERMINAL 0x02
-#define UVC_OUTPUT_TERMINAL 0x03
-#define UVC_SELECTOR_UNIT 0x04
-#define UVC_PROCESSING_UNIT 0x05
-#define UVC_EXTENSION_UNIT 0x06
-#define UVC_ENCODING_UNIT 0x07
+#define UVC_VC_DESCRIPTOR_UNDEFINED 0x00
+#define UVC_VC_HEADER 0x01
+#define UVC_VC_INPUT_TERMINAL 0x02
+#define UVC_VC_OUTPUT_TERMINAL 0x03
+#define UVC_VC_SELECTOR_UNIT 0x04
+#define UVC_VC_PROCESSING_UNIT 0x05
+#define UVC_VC_EXTENSION_UNIT 0x06
+#define UVC_VC_ENCODING_UNIT 0x07
+#define UVC_VS_UNDEFINED 0x00
+#define UVC_VS_INPUT_HEADER 0x01
+#define UVC_VS_OUTPUT_HEADER 0x02
+#define UVC_VS_STILL_IMAGE_FRAME 0x03
+#define UVC_VS_FORMAT_UNCOMPRESSED 0x04
+#define UVC_VS_FRAME_UNCOMPRESSED 0x05
+#define UVC_VS_FORMAT_MJPEG 0x06
+#define UVC_VS_FRAME_MJPEG 0x07
+#define UVC_VS_FORMAT_MPEG2TS 0x0A
+#define UVC_VS_FORMAT_DV 0x0C
+#define UVC_VS_COLORFORMAT 0x0D
+#define UVC_VS_FORMAT_FRAME_BASED 0x10
+#define UVC_VS_FRAME_FRAME_BASED 0x11
+#define UVC_VS_FORMAT_STREAM_BASED 0x12
+#define UVC_VS_FORMAT_H264 0x13
+#define UVC_VS_FRAME_H264 0x14
+#define UVC_VS_FORMAT_H264_SIMULCAST 0x15
+#define UVC_VS_FORMAT_VP8 0x16
+#define UVC_VS_FRAME_VP8 0x17
+#define UVC_VS_FORMAT_VP8_SIMULCAST 0x18
 
-#define UVC_INPUT_TERMINAL_CAMERA 0x0201
+/**
+ * @brief Terminal types
+ */
+#define UVC_ITT_CAMERA 0x0201
 
 /**
  * @brief some packet lengths
@@ -270,5 +291,50 @@ size_t uvc_parse_isoc_endpoint(uint8_t *buf, size_t max_len);
  * @param size Size of the entire config
  */
 void uvc_parse_all_config(size_t size);
+
+/**
+ * @brief Parse a Class Specific Video Streaming Input Header
+ * @param buf Raw USB data buffer
+ * @param max_len Maximum length to parse
+ * @return The amount of data parsed
+ */
+size_t uvc_parse_cs_vs_input_header(uint8_t *buf, size_t max_len);
+
+/**
+ * @brief Parse a Class Specific Video Streaming Input Header
+ * @param buf Raw USB data buffer
+ * @param max_len Maximum length to parse
+ * @return The amount of data parsed
+ */
+size_t uvc_parse_mjpeg_format_desc(uint8_t *buf, size_t max_len);
+
+/**
+ * @brief Parse a Class Specific Video Streaming Input Header
+ * @param buf Raw USB data buffer
+ * @param max_len Maximum length to parse
+ * @return The amount of data parsed
+ */
+size_t uvc_parse_mjpeg_frame_desc(uint8_t *buf, size_t max_len);
+
+/**
+ * @brief Parse a Class Specific Video Streaming Input Header
+ * @param buf Raw USB data buffer
+ * @param max_len Maximum length to parse
+ * @return The amount of data parsed
+ */
+size_t uvc_parse_h264_format_desc(uint8_t *buf, size_t max_len);
+
+/**
+ * @brief Parse a Class Specific Video Streaming Input Header
+ * @param buf Raw USB data buffer
+ * @param max_len Maximum length to parse
+ * @return The amount of data parsed
+ */
+size_t uvc_parse_h264_frame_desc(uint8_t *buf, size_t max_len);
+
+/**
+ * @brief An endless while to preserve state for debugging
+ */
+void uvc_parsing_fault(void);
 
 #endif /* UVC_H_ */
