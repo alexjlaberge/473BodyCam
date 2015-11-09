@@ -361,7 +361,7 @@ size_t uvc_parse_h264_frame_desc(uint8_t *buf, size_t max_len);
 /**
  * @brief An endless while to preserve state for debugging
  */
-void uvc_parsing_fault(void);
+void uvc_parsing_fault(uint8_t i);
 
 /**
  * @brief Entrypoint for parsing the control packets
