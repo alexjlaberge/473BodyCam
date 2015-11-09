@@ -15,7 +15,9 @@
 
 struct usb_pipe
 {
+	uint8_t in_use;
 	uint32_t pipe;
+	uint32_t endpt;
 	uint32_t max_packet_size;
 };
 
@@ -137,6 +139,10 @@ static void uvc_pipe_cb(uint32_t pipe, uint32_t event)
 		{
 			cam_inst.has_error = 1;
 		}
+	}
+	else if (cam_inst.stream.in_use && pipe == cam_inst.stream.pipe)
+	{
+		uvc_parsing_fault(event);
 	}
 }
 
@@ -875,10 +881,30 @@ size_t uvc_parse_streaming_endpoint(uint8_t *buf, size_t max_len)
 {
 	uint8_t len = buf[0];
 	uint8_t type = buf[1];
+	uint8_t addr = buf[2];
+	uint8_t attr = buf[3];
+	uint16_t *max_packet_size = (uint16_t *) (buf + 4);
+	uint8_t interval = buf[6];
+	uint8_t err;
 
 	if (type != USB_DTYPE_ENDPOINT)
 	{
 		uvc_parsing_fault(0);
+	}
+
+	if (!cam_inst.stream.in_use)
+	{
+		cam_inst.stream.endpt = addr & 0x0F;
+		cam_inst.stream.max_packet_size = *max_packet_size;
+
+		cam_inst.stream.pipe = USBHCDPipeAlloc(0, USBHCD_PIPE_ISOC_IN,
+				cam_inst.device, uvc_pipe_cb);
+
+		err = USBHCDPipeConfig(cam_inst.stream.pipe, *max_packet_size,
+				interval,
+				cam_inst.stream.endpt);
+
+		cam_inst.stream.in_use = 1;
 	}
 
 	return len;
