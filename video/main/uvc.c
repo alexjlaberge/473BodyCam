@@ -133,6 +133,9 @@ static void uvc_close(void *dev)
 
 static void uvc_pipe_cb(uint32_t pipe, uint32_t event)
 {
+	uint8_t buf[128];
+	uint32_t len;
+
 	if (pipe == cam_inst.intr.pipe)
 	{
 		if (event == USB_EVENT_ERROR)
@@ -142,7 +145,20 @@ static void uvc_pipe_cb(uint32_t pipe, uint32_t event)
 	}
 	else if (cam_inst.stream.in_use && pipe == cam_inst.stream.pipe)
 	{
-		uvc_parsing_fault(event);
+		switch (event)
+		{
+		case USB_EVENT_SCHEDULER:
+			USBHCDPipeSchedule(pipe, buf, 128);
+			break;
+		case USB_EVENT_RX_AVAILABLE:
+			len = USBHCDPipeTransferSizeGet(pipe);
+			len = USBHCDPipeRead(pipe, buf, 128);
+			uvc_parsing_fault(len);
+			break;
+		default:
+			//uvc_parsing_fault(event);
+			break;
+		}
 	}
 }
 
