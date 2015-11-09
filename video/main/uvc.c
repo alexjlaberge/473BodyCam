@@ -207,65 +207,18 @@ void uvc_parse_all_config(size_t size)
 	i = buf[0];
 
 	// parse control interfaces
-	//i += uvc_parse_csvcid(buf + i, len - i);
-	//i += uvc_parse_control(buf + i, len - i);
+	i += uvc_parse_control(buf + i, len - i);
 
 	// parse streaming interfaces
 	while (i < len)
 	{
-		struct usb_iface tmp;
-		uint8_t desc_len;
-		uint8_t desc_type;
-
-		desc_len = buf[i];
-		desc_type = buf[i + 1];
 		procd = 0;
 
-		switch (desc_type)
-		{
-		case USB_DTYPE_CONFIGURATION:
-			procd = buf[i];
-			break;
-		case USB_DTYPE_CS_INTERFACE:
-			procd = uvc_parse_cs_iface(buf + i, len - i);
-			break;
-		case USB_DTYPE_DEVICE:
-			procd = buf[i];
-			break;
-		case USB_DTYPE_DEVICE_QUAL:
-			procd = buf[i];
-			break;
-		case USB_DTYPE_ENDPOINT:
-			procd = uvc_parse_isoc_endpoint(buf + i, len - i);
-			break;
-		case USB_DTYPE_HUB:
-			procd = buf[i];
-			break;
-		case USB_DTYPE_INTERFACE:
-			procd = uvc_parse_vcid(buf + i, len - i);
-			break;
-		case USB_DTYPE_INTERFACE_ASC:
-			procd = uvc_parse_iad(buf + i, len - i);
-			break;
-		case USB_DTYPE_INTERFACE_PWR:
-			procd = buf[i];
-			break;
-		case USB_DTYPE_OSPEED_CONF:
-			procd = buf[i];
-			break;
-		case USB_DTYPE_OTG:
-			procd = buf[i];
-			break;
-		case USB_DTYPE_STRING:
-			procd = buf[i];
-			break;
-		default:
-			break;
-		}
+		procd = uvc_parse_streaming(buf + i, len - i);
 
 		if (procd == 0)
 		{
-			return;
+			uvc_parsing_fault();
 		}
 
 		i += procd;
@@ -704,6 +657,7 @@ void uvc_parsing_fault(void)
 	}
 }
 
+#define UVC_CS_VS_INPUT_HEADER_MIN_SIZE 13
 size_t uvc_parse_cs_vs_input_header(uint8_t *buf, size_t max_len)
 {
 	size_t len;
@@ -715,11 +669,26 @@ size_t uvc_parse_cs_vs_input_header(uint8_t *buf, size_t max_len)
 	len = buf[0];
 	if (len > max_len)
 	{
-		return 0;
+		uvc_parsing_fault();
+	}
+
+	if (len < UVC_CS_VS_INPUT_HEADER_MIN_SIZE)
+	{
+		uvc_parsing_fault();
 	}
 
 	type = buf[1];
+	if (type != USB_DTYPE_CS_INTERFACE)
+	{
+		uvc_parsing_fault();
+	}
+
 	subtype = buf[2];
+	if (subtype != UVC_VS_INPUT_HEADER)
+	{
+		uvc_parsing_fault();
+	}
+
 	cam_inst.nformats = buf[3];
 	total_length = (uint16_t *) (buf + 4);
 
@@ -747,9 +716,13 @@ size_t uvc_parse_cs_vs_input_header(uint8_t *buf, size_t max_len)
 				len = uvc_parse_h264_frame_desc(buf + i, max_len - i);
 				break;
 			default:
-				uvc_parsing_fault();
+				len = buf[i];
 				break;
 			}
+		}
+		else
+		{
+			break;
 		}
 
 		if (len == 0)
@@ -781,14 +754,17 @@ size_t uvc_parse_mjpeg_format_desc(uint8_t *buf, size_t max_len)
 size_t uvc_parse_mjpeg_frame_desc(uint8_t *buf, size_t max_len)
 {
 	uint8_t len = buf[0];
-	uint16_t width;
-	uint16_t height;
+	uint16_t *width;
+	uint16_t *height;
 	uint8_t index;
+	uint8_t subtype;
 
 	if (len > max_len)
 	{
 		return 0;
 	}
+
+	subtype = buf[2];
 
 	if (subtype != UVC_VS_FRAME_MJPEG)
 	{
@@ -808,6 +784,93 @@ size_t uvc_parse_h264_format_desc(uint8_t *buf, size_t max_len)
 }
 
 size_t uvc_parse_h264_frame_desc(uint8_t *buf, size_t max_len)
+{
+	return buf[0];
+}
+
+size_t uvc_parse_control(uint8_t *buf, size_t max_len)
+{
+	size_t parsed = 0;
+
+	parsed += uvc_parse_iad(buf + parsed, max_len - parsed);
+	parsed += uvc_parse_vcid(buf + parsed, max_len - parsed);
+	parsed += uvc_parse_csvcid(buf + parsed, max_len - parsed);
+
+	while (parsed < max_len)
+	{
+		if (buf[parsed + 1] == USB_DTYPE_ENDPOINT)
+		{
+			parsed += uvc_parse_ctrl_endpoint(buf + parsed, max_len - parsed);
+		}
+		else if (buf[parsed + 1] == USB_DTYPE_CS_ENDPOINT)
+		{
+			parsed += buf[parsed];
+		}
+		else
+		{
+			break;
+		}
+	}
+
+	return parsed;
+}
+
+size_t uvc_parse_streaming(uint8_t *buf, size_t max_len)
+{
+	size_t parsed = 0;
+
+	parsed += uvc_parse_vsid(buf + parsed, max_len - parsed);
+
+	if (buf[parsed + 1] == USB_DTYPE_CS_INTERFACE)
+	{
+		parsed += uvc_parse_cs_vs_input_header(buf + parsed, max_len - parsed);
+	}
+
+	while (parsed < max_len)
+	{
+		if (buf[parsed + 1] == USB_DTYPE_ENDPOINT)
+		{
+			parsed += uvc_parse_streaming_endpoint(buf + parsed, max_len - parsed);
+		}
+		else if (buf[parsed + 1] == USB_DTYPE_CS_ENDPOINT)
+		{
+			parsed += buf[parsed];
+		}
+		else
+		{
+			break;
+		}
+	}
+
+	return parsed;
+}
+
+size_t uvc_parse_vsid(uint8_t *buf, size_t max_len)
+{
+	if (buf[1] != USB_DTYPE_INTERFACE)
+	{
+		uvc_parsing_fault();
+	}
+
+	if (buf[5] != USB_CLASS_VIDEO)
+	{
+		uvc_parsing_fault();
+	}
+
+	if (buf[6] != UVC_SC_VIDEOSTREAMING)
+	{
+		uvc_parsing_fault();
+	}
+
+	return buf[0];
+}
+
+size_t uvc_parse_ctrl_endpoint(uint8_t *buf, size_t max_len)
+{
+	return buf[0];
+}
+
+size_t uvc_parse_streaming_endpoint(uint8_t *buf, size_t max_len)
 {
 	return buf[0];
 }

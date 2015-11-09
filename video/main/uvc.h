@@ -67,6 +67,8 @@
 #define UVC_ENC_UNIT_SIZE 13
 #define UVC_ISO_ENDPT_SIZE 7
 
+#define USB_DTYPE_CS_ENDPOINT 0x25
+
 extern const tUSBHostClassDriver uvc_driver;
 
 /**
@@ -306,6 +308,30 @@ size_t uvc_parse_cs_vs_input_header(uint8_t *buf, size_t max_len);
  * @param max_len Maximum length to parse
  * @return The amount of data parsed
  */
+size_t uvc_parse_ctrl_endpoint(uint8_t *buf, size_t max_len);
+
+/**
+ * @brief Parse a Class Specific Video Streaming Input Header
+ * @param buf Raw USB data buffer
+ * @param max_len Maximum length to parse
+ * @return The amount of data parsed
+ */
+size_t uvc_parse_vsid(uint8_t *buf, size_t max_len);
+
+/**
+ * @brief Parse a Class Specific Video Streaming Input Header
+ * @param buf Raw USB data buffer
+ * @param max_len Maximum length to parse
+ * @return The amount of data parsed
+ */
+size_t uvc_parse_streaming_endpoint(uint8_t *buf, size_t max_len);
+
+/**
+ * @brief Parse a Class Specific Video Streaming Input Header
+ * @param buf Raw USB data buffer
+ * @param max_len Maximum length to parse
+ * @return The amount of data parsed
+ */
 size_t uvc_parse_mjpeg_format_desc(uint8_t *buf, size_t max_len);
 
 /**
@@ -336,5 +362,21 @@ size_t uvc_parse_h264_frame_desc(uint8_t *buf, size_t max_len);
  * @brief An endless while to preserve state for debugging
  */
 void uvc_parsing_fault(void);
+
+/**
+ * @brief Entrypoint for parsing the control packets
+ * @param buf Raw USB data buffer
+ * @param max_len Maximum length to parse
+ * @return The amount of data parsed
+ */
+size_t uvc_parse_control(uint8_t *buf, size_t max_len);
+
+/**
+ * @brief Entrypoint for parsing a group of streaming packets
+ * @param buf Raw USB data buffer
+ * @param max_len Maximum length to parse
+ * @return The amount of data parsed
+ */
+size_t uvc_parse_streaming(uint8_t *buf, size_t max_len);
 
 #endif /* UVC_H_ */
