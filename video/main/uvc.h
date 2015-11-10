@@ -191,6 +191,32 @@ struct uvc_iso_endpt_desc
 	uint8_t bInterval;
 };
 
+struct uvc_probe_ctrl
+{
+	uint16_t bmHint;
+	uint8_t bFormatIndex;
+	uint8_t bFrameIndex;
+	uint32_t dwFrameInterval;
+	uint16_t wKeyFrameRate;
+	uint16_t wPFrameRate;
+	uint16_t wCompQuality;
+	uint16_t wCompWindowSize;
+	uint16_t wDelay;
+	uint32_t dwMaxVideoFrameSize;
+	uint32_t dwMaxPayloadTransferSize;
+	uint32_t dwClockFrequency;
+	uint8_t bmFramingInfo;
+	uint8_t bPreferredVersion;
+	uint8_t bMinVersion;
+	uint8_t bMaxVersion;
+	uint8_t bUsage;
+	uint8_t bBitDepthLuma;
+	uint8_t bmSettings;
+	uint8_t bMaxNumberOfRefFramesPlus1;
+	uint16_t bmRateControlModes;
+	uint64_t bmLayoutPerStream;
+} PACKED;
+
 // TODO Video Frame Descriptor, one for each format
 
 uint8_t uvc_has_error(void);
