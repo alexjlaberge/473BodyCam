@@ -13,6 +13,9 @@
 #include <usblib/host/usbhost.h>
 #include <usblib/host/usbhostpriv.h>
 
+#define INT_BUFFER_SIZE 64
+#define VIDEO_BUFFER_SIZE 256
+
 struct usb_pipe
 {
 	uint8_t in_use;
@@ -49,6 +52,8 @@ struct camera_device
 };
 
 static struct camera_device cam_inst = {0};
+uint8_t cam_stream_buf[VIDEO_BUFFER_SIZE];
+uint8_t int_stream_buf[INT_BUFFER_SIZE];
 
 /**
  * @brief Called by usblib during device enumeration
@@ -61,22 +66,16 @@ static void * uvc_open(tUSBHostDevice *dev);
 static void uvc_close(void *dev);
 
 /**
- * TODO document this
- */
-static uint32_t uvc_callback(void *camera, uint32_t event, uint32_t msg_param,
-		void *msg_data);
-
-/**
  * @brief Callback for pipe status changes
  */
 static void uvc_pipe_cb(uint32_t pipe, uint32_t event);
 
 const tUSBHostClassDriver uvc_driver =
 {
-    USB_CLASS_VIDEO,
-    uvc_open,
-    uvc_close,
-    0
+	USB_CLASS_VIDEO,
+	uvc_open,
+	uvc_close,
+	0
 };
 
 static void * uvc_open(tUSBHostDevice *dev)
@@ -84,7 +83,18 @@ static void * uvc_open(tUSBHostDevice *dev)
 	tInterfaceDescriptor *iface;
 	tEndpointDescriptor *endpt;
 	uint8_t i;
+	size_t j;
 	uint32_t err = 0;
+
+	for (j = 0; j < VIDEO_BUFFER_SIZE; j++)
+	{
+		cam_stream_buf[j] = 0;
+	}
+
+	for (j = 0; j < INT_BUFFER_SIZE; j++)
+	{
+		int_stream_buf[j] = 0;
+	}
 
 	iface = USBDescGetInterface(dev->psConfigDescriptor, 0, 0);
 
@@ -133,8 +143,10 @@ static void uvc_close(void *dev)
 
 static void uvc_pipe_cb(uint32_t pipe, uint32_t event)
 {
-	uint8_t buf[128];
 	uint32_t len;
+	uint8_t pkt_len;
+	uint8_t pkt_type;
+	uint8_t pkt_subtype;
 
 	if (pipe == cam_inst.intr.pipe)
 	{
@@ -144,10 +156,13 @@ static void uvc_pipe_cb(uint32_t pipe, uint32_t event)
 			cam_inst.has_error = 1;
 			break;
 		case USB_EVENT_SCHEDULER:
-			len = USBHCDPipeSchedule(pipe, buf, 128);
+			len = USBHCDPipeSchedule(pipe, int_stream_buf, INT_BUFFER_SIZE);
 			break;
 		case USB_EVENT_RX_AVAILABLE:
 			len = USBHCDPipeTransferSizeGet(pipe);
+			pkt_len = int_stream_buf[0];
+			pkt_type = int_stream_buf[1];
+			pkt_subtype = int_stream_buf[2];
 			break;
 		case USB_EVENT_STALL:
 			uvc_parsing_fault(20);
@@ -162,17 +177,22 @@ static void uvc_pipe_cb(uint32_t pipe, uint32_t event)
 		switch (event)
 		{
 		case USB_EVENT_SCHEDULER:
-			len = USBHCDPipeSchedule(pipe, buf, 128);
+			len = USBHCDPipeSchedule(pipe, cam_stream_buf, VIDEO_BUFFER_SIZE);
 			break;
 		case USB_EVENT_RX_AVAILABLE:
 			len = USBHCDPipeTransferSizeGet(pipe);
-			//len = USBHCDPipeRead(pipe, buf, 128);
-			//uvc_parsing_fault(len);
+			pkt_len = cam_stream_buf[0];
+			pkt_type = cam_stream_buf[1];
+			pkt_subtype = cam_stream_buf[2];
 			break;
 		default:
 			uvc_parsing_fault(event);
 			break;
 		}
+	}
+	else
+	{
+		uvc_parsing_fault(15);
 	}
 }
 
