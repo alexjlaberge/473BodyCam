@@ -138,9 +138,22 @@ static void uvc_pipe_cb(uint32_t pipe, uint32_t event)
 
 	if (pipe == cam_inst.intr.pipe)
 	{
-		if (event == USB_EVENT_ERROR)
+		switch (event)
 		{
+		case USB_EVENT_ERROR:
 			cam_inst.has_error = 1;
+			break;
+		case USB_EVENT_SCHEDULER:
+			USBHCDPipeSchedule(pipe, buf, 128);
+			break;
+		case USB_EVENT_RX_AVAILABLE:
+			len = USBHCDPipeTransferSizeGet(pipe);
+			break;
+		case USB_EVENT_STALL:
+			uvc_parsing_fault(20);
+			break;
+		default:
+			uvc_parsing_fault(event);
 		}
 	}
 	else if (cam_inst.stream.in_use && pipe == cam_inst.stream.pipe)
@@ -152,11 +165,11 @@ static void uvc_pipe_cb(uint32_t pipe, uint32_t event)
 			break;
 		case USB_EVENT_RX_AVAILABLE:
 			len = USBHCDPipeTransferSizeGet(pipe);
-			len = USBHCDPipeRead(pipe, buf, 128);
-			uvc_parsing_fault(len);
+			//len = USBHCDPipeRead(pipe, buf, 128);
+			//uvc_parsing_fault(len);
 			break;
 		default:
-			//uvc_parsing_fault(event);
+			uvc_parsing_fault(event);
 			break;
 		}
 	}
@@ -924,4 +937,53 @@ size_t uvc_parse_streaming_endpoint(uint8_t *buf, size_t max_len)
 	}
 
 	return len;
+}
+
+// TODO 1. vc_probe_control(set_cur) -> returns vc_probe_control(get_cur)?
+// TODO 2. vc_commit_control(set_cur)
+// TODO 3. set_interface(1)
+uint32_t uvc_probe_set_cur(void)
+{
+	struct uvc_probe_ctrl probe;
+	struct uvc_probe_ctrl res;
+	uint32_t sent;
+	tUSBRequest req;
+
+	// This is straight from page 133 of the UVC 1.5 Specification
+	req.bmRequestType = (1 << 5) | 1;
+	req.bRequest = UVC_VS_PROBE_CONTROL_SET_CUR;
+	req.wValue = (UVC_VS_PROBE_CONTROL << 8);
+	req.wIndex = 1;
+	req.wLength = sizeof(probe);
+
+	probe.bmHint = 1;
+	probe.bFormatIndex = 1;
+	probe.bFrameIndex = 1;
+	probe.dwFrameInterval = 0; /* TODO get from device somehow */
+	probe.wKeyFrameRate = 0;
+	probe.wPFrameRate = 0;
+	probe.wCompQuality = 1;
+	probe.wCompWindowSize = 0; /* TODO get from device somehow */
+	probe.wDelay = 0;
+	probe.dwMaxVideoFrameSize = 0;
+	probe.dwMaxPayloadTransferSize = 0;
+	probe.dwClockFrequency = 0;
+	probe.bmFramingInfo = 0;
+	probe.bPreferredVersion = 0;
+	probe.bMinVersion = 0;
+	probe.bMaxVersion = 0;
+	probe.bUsage = 0;
+	probe.bBitDepthLuma = 0;
+	probe.bmSettings = 0;
+	probe.bMaxNumberOfRefFramesPlus1 = 10; /* TODO make this not hard-coded */
+	probe.bmRateControlModes = 0;
+	probe.bmLayoutPerStream = 0;
+
+	sent = USBHCDControlTransfer(0, &req, cam_inst.device, (uint8_t *) &probe,
+			sizeof(probe),
+			cam_inst.device->sDeviceDescriptor.bMaxPacketSize0);
+	if (sent != sizeof(probe))
+	{
+		uvc_parsing_fault(0);
+	}
 }

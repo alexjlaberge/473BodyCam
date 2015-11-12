@@ -69,6 +69,9 @@
 
 #define USB_DTYPE_CS_ENDPOINT 0x25
 
+#define UVC_VS_PROBE_CONTROL 0x01
+#define UVC_VS_PROBE_CONTROL_SET_CUR 0x01
+
 extern const tUSBHostClassDriver uvc_driver;
 
 /**

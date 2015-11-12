@@ -181,11 +181,8 @@ int main(void)
         switch (CAMERA_STATE)
         {
             case CAMERA_INIT:
-                // USBHKeyboardInit(g_psKeyboardInstance);
-                //CAMERA_STATE = STATE_KEYBOARD_CONNECTED;
-            	iad = uvc_get_iad();
             	conf = uvc_get_config();
-
+				uvc_probe_set_cur();
             	CAMERA_STATE = CAMERA_CONNECTED;
                 break;
 
