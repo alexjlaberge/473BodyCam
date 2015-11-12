@@ -49,6 +49,7 @@ struct camera_device
 	struct uvc_proc_unit_desc proc_unit;
 	struct uvc_enc_unit_desc enc_unit;
 	struct uvc_iso_endpt_desc iso_endpt;
+	uint32_t frame_interval;
 };
 
 static struct camera_device cam_inst = {0};
@@ -184,6 +185,7 @@ static void uvc_pipe_cb(uint32_t pipe, uint32_t event)
 			pkt_len = cam_stream_buf[0];
 			pkt_type = cam_stream_buf[1];
 			pkt_subtype = cam_stream_buf[2];
+			USBHCDPipeDataAck(pipe);
 			break;
 		default:
 			uvc_parsing_fault(event);
@@ -745,6 +747,12 @@ size_t uvc_parse_cs_vs_input_header(uint8_t *buf, size_t max_len)
 
 		if (type == USB_DTYPE_CS_INTERFACE)
 		{
+			if (i == buf[0] && buf[i] >= 24)
+			{
+				uint32_t *tmp = (uint32_t *) (buf + i + 21);
+				cam_inst.frame_interval = *tmp;
+			}
+
 			switch (subtype)
 			{
 			case UVC_VS_FORMAT_MJPEG:
@@ -980,14 +988,14 @@ uint32_t uvc_probe_set_cur(void)
 	probe.bmHint = 1;
 	probe.bFormatIndex = 1;
 	probe.bFrameIndex = 1;
-	probe.dwFrameInterval = 0; /* TODO get from device somehow */
+	probe.dwFrameInterval = cam_inst.frame_interval;
 	probe.wKeyFrameRate = 0;
 	probe.wPFrameRate = 0;
 	probe.wCompQuality = 1;
-	probe.wCompWindowSize = 0; /* TODO get from device somehow */
+	probe.wCompWindowSize = 0;
 	probe.wDelay = 0;
-	probe.dwMaxVideoFrameSize = 0;
-	probe.dwMaxPayloadTransferSize = 0;
+	probe.dwMaxVideoFrameSize = (1024 * 1024 * 8);
+	probe.dwMaxPayloadTransferSize = cam_inst.device->sDeviceDescriptor.bMaxPacketSize0;
 	probe.dwClockFrequency = 0;
 	probe.bmFramingInfo = 0;
 	probe.bPreferredVersion = 0;
@@ -1006,6 +1014,21 @@ uint32_t uvc_probe_set_cur(void)
 	if (sent != sizeof(probe))
 	{
 		uvc_parsing_fault(0);
+	}
+
+	req.bmRequestType = USB_RTYPE_DIR_OUT | USB_RTYPE_CLASS |
+		USB_RTYPE_INTERFACE;
+	req.bRequest = UVC_VS_COMMIT_CONTROL_SET_CUR;
+	req.wValue = (UVC_VS_COMMIT_CONTROL << 8);
+	req.wIndex = 1;
+	req.wLength = sizeof(probe);
+
+	sent = USBHCDControlTransfer(0, &req, cam_inst.device, (uint8_t *) &probe,
+			sizeof(probe),
+			cam_inst.device->sDeviceDescriptor.bMaxPacketSize0);
+	if (sent != sizeof(probe))
+	{
+		uvc_parsing_fault(1);
 	}
 }
 
