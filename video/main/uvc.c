@@ -164,6 +164,7 @@ static void uvc_pipe_cb(uint32_t pipe, uint32_t event)
 			pkt_len = int_stream_buf[0];
 			pkt_type = int_stream_buf[1];
 			pkt_subtype = int_stream_buf[2];
+			USBHCDPipeDataAck(pipe);
 			break;
 		case USB_EVENT_STALL:
 			uvc_parsing_fault(20);
