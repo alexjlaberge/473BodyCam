@@ -144,7 +144,7 @@ static void uvc_pipe_cb(uint32_t pipe, uint32_t event)
 			cam_inst.has_error = 1;
 			break;
 		case USB_EVENT_SCHEDULER:
-			USBHCDPipeSchedule(pipe, buf, 128);
+			len = USBHCDPipeSchedule(pipe, buf, 128);
 			break;
 		case USB_EVENT_RX_AVAILABLE:
 			len = USBHCDPipeTransferSizeGet(pipe);
@@ -154,6 +154,7 @@ static void uvc_pipe_cb(uint32_t pipe, uint32_t event)
 			break;
 		default:
 			uvc_parsing_fault(event);
+			break;
 		}
 	}
 	else if (cam_inst.stream.in_use && pipe == cam_inst.stream.pipe)
@@ -161,7 +162,7 @@ static void uvc_pipe_cb(uint32_t pipe, uint32_t event)
 		switch (event)
 		{
 		case USB_EVENT_SCHEDULER:
-			USBHCDPipeSchedule(pipe, buf, 128);
+			len = USBHCDPipeSchedule(pipe, buf, 128);
 			break;
 		case USB_EVENT_RX_AVAILABLE:
 			len = USBHCDPipeTransferSizeGet(pipe);
@@ -926,7 +927,7 @@ size_t uvc_parse_streaming_endpoint(uint8_t *buf, size_t max_len)
 		cam_inst.stream.endpt = addr & 0x0F;
 		cam_inst.stream.max_packet_size = *max_packet_size;
 
-		cam_inst.stream.pipe = USBHCDPipeAlloc(0, USBHCD_PIPE_ISOC_IN,
+		cam_inst.stream.pipe = USBHCDPipeAlloc(0, USBHCD_PIPE_ISOC_IN_DMA,
 				cam_inst.device, uvc_pipe_cb);
 
 		err = USBHCDPipeConfig(cam_inst.stream.pipe, *max_packet_size,
@@ -949,8 +950,8 @@ uint32_t uvc_probe_set_cur(void)
 	uint32_t sent;
 	tUSBRequest req;
 
-	// This is straight from page 133 of the UVC 1.5 Specification
-	req.bmRequestType = (1 << 5) | 1;
+	req.bmRequestType = USB_RTYPE_DIR_OUT | USB_RTYPE_CLASS |
+		USB_RTYPE_INTERFACE;
 	req.bRequest = UVC_VS_PROBE_CONTROL_SET_CUR;
 	req.wValue = (UVC_VS_PROBE_CONTROL << 8);
 	req.wIndex = 1;
@@ -986,4 +987,9 @@ uint32_t uvc_probe_set_cur(void)
 	{
 		uvc_parsing_fault(0);
 	}
+}
+
+uint32_t uvc_set_iface(void)
+{
+	USBHCDSetInterface(0, (uint32_t) cam_inst.device, 1, 1);
 }

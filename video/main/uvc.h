@@ -408,4 +408,6 @@ size_t uvc_parse_control(uint8_t *buf, size_t max_len);
  */
 size_t uvc_parse_streaming(uint8_t *buf, size_t max_len);
 
+uint32_t uvc_set_iface(void);
+
 #endif /* UVC_H_ */

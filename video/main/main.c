@@ -183,6 +183,7 @@ int main(void)
             case CAMERA_INIT:
             	conf = uvc_get_config();
 				uvc_probe_set_cur();
+				uvc_set_iface();
             	CAMERA_STATE = CAMERA_CONNECTED;
                 break;
 
