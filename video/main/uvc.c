@@ -71,6 +71,9 @@ static void uvc_close(void *dev);
  */
 static void uvc_pipe_cb(uint32_t pipe, uint32_t event);
 
+uint32_t uvc_probe_set_cur_10(void);
+uint32_t uvc_probe_set_cur_15(void);
+
 const tUSBHostClassDriver uvc_driver =
 {
 	USB_CLASS_VIDEO,
@@ -974,8 +977,78 @@ size_t uvc_parse_streaming_endpoint(uint8_t *buf, size_t max_len)
 // TODO 3. set_interface(1)
 uint32_t uvc_probe_set_cur(void)
 {
-	struct uvc_probe_ctrl probe;
-	struct uvc_probe_ctrl res;
+	switch (cam_inst.uvc_version)
+	{
+	case 0x100:
+		return uvc_probe_set_cur_10();
+	case 0x150:
+		return uvc_probe_set_cur_15();
+	default:
+		return uvc_probe_set_cur_15();
+	}
+}
+
+uint32_t uvc_probe_set_cur_10(void)
+{
+	struct uvc_probe_ctrl_10 probe;
+	struct uvc_probe_ctrl_10 res;
+	uint32_t sent;
+	tUSBRequest req;
+
+	req.bmRequestType = USB_RTYPE_DIR_OUT | USB_RTYPE_CLASS |
+		USB_RTYPE_INTERFACE;
+	req.bRequest = UVC_VS_PROBE_CONTROL_SET_CUR;
+	req.wValue = (UVC_VS_PROBE_CONTROL << 8);
+	req.wIndex = 1;
+	req.wLength = sizeof(probe);
+
+	probe.bmHint = 1;
+	probe.bFormatIndex = 1;
+	probe.bFrameIndex = 1;
+	probe.dwFrameInterval = cam_inst.frame_interval;
+	probe.wKeyFrameRate = 0;
+	probe.wPFrameRate = 0;
+	probe.wCompQuality = 1;
+	probe.wCompWindowSize = 0;
+	probe.wDelay = 0;
+	probe.dwMaxVideoFrameSize = (1024 * 1024 * 8);
+	probe.dwMaxPayloadTransferSize = cam_inst.device->sDeviceDescriptor.bMaxPacketSize0;
+	probe.dwClockFrequency = 0;
+	probe.bmFramingInfo = 0;
+	probe.bPreferredVersion = 0;
+	probe.bMinVersion = 0;
+	probe.bMaxVersion = 0;
+
+	sent = USBHCDControlTransfer(0, &req, cam_inst.device, (uint8_t *) &probe,
+			sizeof(probe),
+			cam_inst.device->sDeviceDescriptor.bMaxPacketSize0);
+	if (sent != sizeof(probe))
+	{
+		uvc_parsing_fault(0);
+	}
+
+	req.bmRequestType = USB_RTYPE_DIR_OUT | USB_RTYPE_CLASS |
+		USB_RTYPE_INTERFACE;
+	req.bRequest = UVC_VS_COMMIT_CONTROL_SET_CUR;
+	req.wValue = (UVC_VS_COMMIT_CONTROL << 8);
+	req.wIndex = 1;
+	req.wLength = sizeof(probe);
+
+	sent = USBHCDControlTransfer(0, &req, cam_inst.device, (uint8_t *) &probe,
+			sizeof(probe),
+			cam_inst.device->sDeviceDescriptor.bMaxPacketSize0);
+	if (sent != sizeof(probe))
+	{
+		uvc_parsing_fault(1);
+	}
+
+	return 0;
+}
+
+uint32_t uvc_probe_set_cur_15(void)
+{
+	struct uvc_probe_ctrl_15 probe;
+	struct uvc_probe_ctrl_15 res;
 	uint32_t sent;
 	tUSBRequest req;
 
@@ -1031,9 +1104,13 @@ uint32_t uvc_probe_set_cur(void)
 	{
 		uvc_parsing_fault(1);
 	}
+
+	return 0;
 }
 
 uint32_t uvc_set_iface(void)
 {
 	USBHCDSetInterface(0, (uint32_t) cam_inst.device, 1, 1);
+
+	return 0;
 }
