@@ -176,7 +176,7 @@ int main(void)
 
     while (1)
     {
-        USBHCDMain();
+		USBHCDMain();
 
         switch (CAMERA_STATE)
         {
@@ -188,6 +188,7 @@ int main(void)
                 break;
 
             case CAMERA_CONNECTED:
+				uvc_main();
                 break;
 
             case CAMERA_UNCONNECTED:

@@ -431,8 +431,18 @@ size_t uvc_parse_control(uint8_t *buf, size_t max_len);
  */
 size_t uvc_parse_streaming(uint8_t *buf, size_t max_len);
 
+/**
+ * @brief Entrypoint for parsing uncompressed format descriptor
+ * @param buf Raw USB data buffer
+ * @param max_len Maximum length to parse
+ * @return The amount of data parsed
+ */
+size_t uvc_parse_uncomp_format_desc(uint8_t *buf, size_t max_len);
+
 uint32_t uvc_set_iface(void);
 
 uint32_t uvc_probe_set_cur(void);
+
+void uvc_main(void);
 
 #endif /* UVC_H_ */

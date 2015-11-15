@@ -53,6 +53,8 @@ struct camera_device
 	uint8_t streaming_iface;
 	uint8_t streaming_endpt;
 	uint8_t streaming_alt;
+	uint8_t uncomp_format_idx;
+	uint8_t uncomp_frame_idx;
 };
 
 static struct camera_device cam_inst = {0};
@@ -203,6 +205,12 @@ static void uvc_pipe_cb(uint32_t pipe, uint32_t event)
 	{
 		uvc_parsing_fault(15);
 	}
+}
+
+void uvc_main(void)
+{
+	USBHCDPipeSchedule(cam_inst.stream.pipe, cam_stream_buf,
+		VIDEO_BUFFER_SIZE);
 }
 
 uint32_t uvc_callback(void *camera, uint32_t event, uint32_t msg_param,
@@ -758,7 +766,7 @@ size_t uvc_parse_cs_vs_input_header(uint8_t *buf, size_t max_len)
 			if (i == buf[0] && buf[i] >= 24)
 			{
 				uint32_t *tmp = (uint32_t *) (buf + i + 21);
-				cam_inst.frame_interval = *tmp;
+				//cam_inst.frame_interval = *tmp;
 			}
 
 			switch (subtype)
@@ -774,6 +782,9 @@ size_t uvc_parse_cs_vs_input_header(uint8_t *buf, size_t max_len)
 				break;
 			case UVC_VS_FRAME_H264:
 				len = uvc_parse_h264_frame_desc(buf + i, max_len - i);
+				break;
+			case UVC_VS_FORMAT_UNCOMPRESSED:
+				len = uvc_parse_uncomp_format_desc(buf + i, max_len - i);
 				break;
 			default:
 				len = buf[i];
@@ -970,8 +981,8 @@ size_t uvc_parse_streaming_endpoint(uint8_t *buf, size_t max_len)
 		cam_inst.stream.endpt = addr & 0x0F;
 		cam_inst.stream.max_packet_size = *max_packet_size;
 
-		cam_inst.stream.pipe = USBHCDPipeAlloc(0, USBHCD_PIPE_ISOC_IN_DMA,
-				cam_inst.device, uvc_pipe_cb);
+		cam_inst.stream.pipe = USBHCDPipeAllocSize(0, USBHCD_PIPE_ISOC_IN_DMA,
+				cam_inst.device, *max_packet_size, uvc_pipe_cb);
 
 		err = USBHCDPipeConfig(cam_inst.stream.pipe, *max_packet_size,
 				interval,
@@ -1135,4 +1146,55 @@ uint32_t uvc_set_iface(void)
 		4);
 
 	return 0;
+}
+
+size_t uvc_parse_uncomp_format_desc(uint8_t *buf, size_t max_len)
+{
+	uint8_t len = buf[0];
+	uint8_t subtype;
+	uint8_t idx;
+	uint8_t nframes;
+	uint16_t *width;
+	uint16_t *height;
+	uint32_t *min_rate;
+	uint32_t *max_rate;
+	uint8_t ivals;
+	uint32_t *ival;
+	size_t i = 0;
+
+	if (len != 27)
+	{
+		uvc_parsing_fault(0);
+	}
+
+	idx = buf[3];
+	nframes = buf[4];
+
+	cam_inst.uncomp_format_idx = idx;
+
+	i += 27;
+	while (i < max_len)
+	{
+		len = buf[i];
+		subtype = buf[i + 2];
+		idx = buf[i + 3];
+		width = (uint16_t *) (buf + i + 5);
+		height = (uint16_t *) (buf + i + 7);
+		min_rate = (uint32_t *) (buf + i + 9);
+		max_rate = (uint32_t *) (buf + i + 13);
+		ivals = buf[i + 25];
+		ival = (uint32_t *) (buf + i + 26);
+
+		cam_inst.frame_interval = *ival;
+
+		i += len;
+
+		if (cam_inst.uncomp_frame_idx == 0)
+		{
+			cam_inst.uncomp_frame_idx = idx;
+			break;
+		}
+	}
+
+	return i;
 }
