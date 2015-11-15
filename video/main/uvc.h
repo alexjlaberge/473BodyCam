@@ -72,6 +72,7 @@
 #define UVC_VS_PROBE_CONTROL 0x01
 #define UVC_VS_COMMIT_CONTROL 0x02
 #define UVC_VS_PROBE_CONTROL_SET_CUR 0x01
+#define UVC_VS_PROBE_CONTROL_GET_CUR 0x81
 #define UVC_VS_COMMIT_CONTROL_SET_CUR 0x01
 
 extern const tUSBHostClassDriver uvc_driver;
@@ -209,11 +210,11 @@ struct uvc_probe_ctrl_10
 	uint16_t wDelay;
 	uint32_t dwMaxVideoFrameSize;
 	uint32_t dwMaxPayloadTransferSize;
-	uint32_t dwClockFrequency;
-	uint8_t bmFramingInfo;
-	uint8_t bPreferredVersion;
-	uint8_t bMinVersion;
-	uint8_t bMaxVersion;
+	//uint32_t dwClockFrequency;
+	//uint8_t bmFramingInfo;
+	//uint8_t bPreferredVersion;
+	//uint8_t bMinVersion;
+	//uint8_t bMaxVersion;
 } PACKED;
 
 struct uvc_probe_ctrl_15
@@ -431,5 +432,7 @@ size_t uvc_parse_control(uint8_t *buf, size_t max_len);
 size_t uvc_parse_streaming(uint8_t *buf, size_t max_len);
 
 uint32_t uvc_set_iface(void);
+
+uint32_t uvc_probe_set_cur(void);
 
 #endif /* UVC_H_ */

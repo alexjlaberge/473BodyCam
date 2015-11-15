@@ -50,6 +50,9 @@ struct camera_device
 	struct uvc_enc_unit_desc enc_unit;
 	struct uvc_iso_endpt_desc iso_endpt;
 	uint32_t frame_interval;
+	uint8_t streaming_iface;
+	uint8_t streaming_endpt;
+	uint8_t streaming_alt;
 };
 
 static struct camera_device cam_inst = {0};
@@ -741,6 +744,7 @@ size_t uvc_parse_cs_vs_input_header(uint8_t *buf, size_t max_len)
 
 	cam_inst.nformats = buf[3];
 	total_length = (uint16_t *) (buf + 4);
+	cam_inst.streaming_endpt = buf[6];
 
 	i = len;
 	while (i < *total_length)
@@ -907,6 +911,7 @@ size_t uvc_parse_vsid(uint8_t *buf, size_t max_len)
 	uint8_t type = buf[1];
 	uint8_t class = buf[5];
 	uint8_t sc = buf[6];
+	uint8_t alternate_setting = buf[3];
 
 	if (type != USB_DTYPE_INTERFACE)
 	{
@@ -921,6 +926,12 @@ size_t uvc_parse_vsid(uint8_t *buf, size_t max_len)
 	if (sc != UVC_SC_VIDEOSTREAMING)
 	{
 		uvc_parsing_fault(2);
+	}
+
+	if (!cam_inst.stream.in_use)
+	{
+		cam_inst.streaming_alt = alternate_setting;
+		cam_inst.streaming_iface = buf[2];
 	}
 
 	return len;
@@ -995,11 +1006,13 @@ uint32_t uvc_probe_set_cur_10(void)
 	uint32_t sent;
 	tUSBRequest req;
 
+	memset((void *) &res, 0, sizeof(res));
+
 	req.bmRequestType = USB_RTYPE_DIR_OUT | USB_RTYPE_CLASS |
 		USB_RTYPE_INTERFACE;
 	req.bRequest = UVC_VS_PROBE_CONTROL_SET_CUR;
 	req.wValue = (UVC_VS_PROBE_CONTROL << 8);
-	req.wIndex = 1;
+	req.wIndex = cam_inst.streaming_iface;
 	req.wLength = sizeof(probe);
 
 	probe.bmHint = 1;
@@ -1008,17 +1021,18 @@ uint32_t uvc_probe_set_cur_10(void)
 	probe.dwFrameInterval = cam_inst.frame_interval;
 	probe.wKeyFrameRate = 0;
 	probe.wPFrameRate = 0;
-	probe.wCompQuality = 1;
+	probe.wCompQuality = 0;
 	probe.wCompWindowSize = 0;
 	probe.wDelay = 0;
-	probe.dwMaxVideoFrameSize = (1024 * 1024 * 8);
-	probe.dwMaxPayloadTransferSize = cam_inst.device->sDeviceDescriptor.bMaxPacketSize0;
-	probe.dwClockFrequency = 0;
-	probe.bmFramingInfo = 0;
-	probe.bPreferredVersion = 0;
-	probe.bMinVersion = 0;
-	probe.bMaxVersion = 0;
+	probe.dwMaxVideoFrameSize = (1920 * 1080 * 3 * 8);
+	probe.dwMaxPayloadTransferSize = 0;
+	//probe.dwClockFrequency = 0;
+	//probe.bmFramingInfo = 0;
+	//probe.bPreferredVersion = 0;
+	//probe.bMinVersion = 0;
+	//probe.bMaxVersion = 0;
 
+	// VS_PROBE_CONTROL(SET_CUR)
 	sent = USBHCDControlTransfer(0, &req, cam_inst.device, (uint8_t *) &probe,
 			sizeof(probe),
 			cam_inst.device->sDeviceDescriptor.bMaxPacketSize0);
@@ -1027,20 +1041,27 @@ uint32_t uvc_probe_set_cur_10(void)
 		uvc_parsing_fault(0);
 	}
 
+	// VS_PROBE_CONTROL(GET_CUR)
+	req.bmRequestType = USB_RTYPE_DIR_IN | USB_RTYPE_CLASS |
+		USB_RTYPE_INTERFACE;
+	req.bRequest = UVC_VS_PROBE_CONTROL_GET_CUR;
+	req.wValue = (UVC_VS_PROBE_CONTROL << 8);
+	req.wIndex = cam_inst.streaming_iface;
+	req.wLength = sizeof(res);
+	sent = USBHCDControlTransfer(0, &req, cam_inst.device, (uint8_t *) &res,
+			sizeof(res),
+			cam_inst.device->sDeviceDescriptor.bMaxPacketSize0);
+
+	// VS_COMMIT_CONTROL(SET_CUR)
 	req.bmRequestType = USB_RTYPE_DIR_OUT | USB_RTYPE_CLASS |
 		USB_RTYPE_INTERFACE;
 	req.bRequest = UVC_VS_COMMIT_CONTROL_SET_CUR;
 	req.wValue = (UVC_VS_COMMIT_CONTROL << 8);
-	req.wIndex = 1;
+	req.wIndex = cam_inst.streaming_iface;
 	req.wLength = sizeof(probe);
 
-	sent = USBHCDControlTransfer(0, &req, cam_inst.device, (uint8_t *) &probe,
-			sizeof(probe),
-			cam_inst.device->sDeviceDescriptor.bMaxPacketSize0);
-	if (sent != sizeof(probe))
-	{
-		uvc_parsing_fault(1);
-	}
+	sent = USBHCDControlTransfer(0, &req, cam_inst.device, (uint8_t *) &res,
+			sent, cam_inst.device->sDeviceDescriptor.bMaxPacketSize0);
 
 	return 0;
 }
@@ -1110,7 +1131,8 @@ uint32_t uvc_probe_set_cur_15(void)
 
 uint32_t uvc_set_iface(void)
 {
-	USBHCDSetInterface(0, (uint32_t) cam_inst.device, 1, 1);
+	USBHCDSetInterface(0, (uint32_t) cam_inst.device, cam_inst.streaming_iface,
+		4);
 
 	return 0;
 }
