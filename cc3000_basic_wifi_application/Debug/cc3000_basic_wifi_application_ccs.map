@@ -1,0 +1,617 @@
+******************************************************************************
+                  TI ARM Linker PC v5.2.5                      
+******************************************************************************
+>> Linked Thu Nov 12 20:03:39 2015
+
+OUTPUT FILE NAME:   <cc3000_basic_wifi_application.out>
+ENTRY POINT SYMBOL: "_c_int00"  address: 000024f9
+
+
+MEMORY CONFIGURATION
+
+         name            origin    length      used     unused   attr    fill
+----------------------  --------  ---------  --------  --------  ----  --------
+  FLASH                 00000000   00100000  0000336c  000fcc94  R  X
+  SRAM                  20000000   00040000  00005402  0003abfe  RW X
+
+
+SEGMENT ALLOCATION MAP
+
+run origin  load origin   length   init length attrs members
+----------  ----------- ---------- ----------- ----- -------
+00000000    00000000    00003370   00003370    r-x
+  00000000    00000000    00000200   00000200    r-- .intvecs
+  00000200    00000200    00002dcc   00002dcc    r-x .text
+  00002fcc    00002fcc    00000340   00000340    r-- .const
+  00003310    00003310    00000060   00000060    r-- .cinit
+20000000    20000000    00005404   00000000    rw-
+  20000000    20000000    00004000   00000000    rw- .stack
+  20004000    20004000    00001396   00000000    rw- .bss
+  20005398    20005398    0000006c   00000000    rw- .data
+
+
+SECTION ALLOCATION MAP
+
+ output                                  attributes/
+section   page    origin      length       input sections
+--------  ----  ----------  ----------   ----------------
+.intvecs   0    00000000    00000200     
+                  00000000    00000200     startup_ccs.obj (.intvecs)
+
+.text      0    00000200    00002dcc     
+                  00000200    0000031c     cc3000lib.obj (.text:hci_event_handler)
+                  0000051c    00000210     cc3000_basic_wifi_application.obj (.text:CC3000_UsynchCallback)
+                  0000072c    00000204     driverlib.lib : sysctl.obj (.text:SysCtlClockFreqSet)
+                  00000930    000001ea     uartstdio.obj (.text:UARTvprintf)
+                  00000b1a    00000002     startup_ccs.obj (.text:FaultISR)
+                  00000b1c    000001b4     cc3000lib.obj (.text:hci_unsol_event_handler)
+                  00000cd0    00000160     uartstdio.obj (.text:UARTStdioIntHandler)
+                  00000e30    00000148     cc3000_basic_wifi_application.obj (.text:UARTIntHandler)
+                  00000f78    0000013c     cc3000lib.obj (.text:SpiConfigure)
+                  000010b4    00000130     driverlib.lib : gpio.obj (.text:GPIOPadConfigSet)
+                  000011e4    00000124     cc3000_basic_wifi_application.obj (.text:main)
+                  00001308    00000114     cc3000_basic_wifi_application.obj (.text:initWiFiAndSysUART)
+                  0000141c    00000108     cc3000lib.obj (.text:simple_link_send)
+                  00001524    000000cc     board.obj (.text:pio_init)
+                  000015f0    000000ca     cc3000lib.obj (.text:hci_patch_send)
+                  000016ba    00000002     startup_ccs.obj (.text:IntDefaultHandler)
+                  000016bc    000000c8     cc3000lib.obj (.text:wlan_connect)
+                  00001784    000000b8     cc3000lib.obj (.text:DispatcherUARTConfigure)
+                  0000183c    000000b8     cc3000lib.obj (.text:SpiIntHandler)
+                  000018f4    000000b0     uartstdio.obj (.text:UARTStdioConfig)
+                  000019a4    000000b0     cc3000_basic_wifi_application.obj (.text:initGPS)
+                  00001a54    000000a8     uartstdio.obj (.text:UARTwrite)
+                  00001afc    0000009c     rtsv7M4_T_le_v4SPD16_eabi.lib : memcpy_t2.obj (.text)
+                  00001b98    0000009c     ustdlib.obj (.text:ustrtoul)
+                  00001c34    0000009a     cc3000_basic_wifi_application.obj (.text:DotDecimalDecoder)
+                  00001cce    00000002     startup_ccs.obj (.text:NmiSR)
+                  00001cd0    0000008c     uartstdio.obj (.text:UARTPrimeTransmit)
+                  00001d5c    00000084     cc3000lib.obj (.text:SpiReadDataCont)
+                  00001de0    00000080     cc3000lib.obj (.text:SpiFirstWrite)
+                  00001e60    00000080     cc3000lib.obj (.text:SpiReadData)
+                  00001ee0    0000007c     cc3000lib.obj (.text:wlan_start)
+                  00001f5c    0000007a     rtsv7M4_T_le_v4SPD16_eabi.lib : memset_t2.obj (.text)
+                  00001fd6    00000002                                   : i_div0.obj (.text)
+                  00001fd8    00000078     cc3000lib.obj (.text:SpiWriteAsync)
+                  00002050    00000078     cc3000lib.obj (.text:hci_unsol_handle_patch_request)
+                  000020c8    0000006c     cc3000lib.obj (.text:SpiWrite)
+                  00002134    0000006c     cc3000lib.obj (.text:SpiWriteDataSynchronous)
+                  000021a0    0000006c     rtsv7M4_T_le_v4SPD16_eabi.lib : autoinit.obj (.text)
+                  0000220c    0000006a                                   : copy_decompress_rle.obj (.text)
+                  00002276    00000002     --HOLE-- [fill = 0]
+                  00002278    00000068     driverlib.lib : interrupt.obj (.text:IntEnable)
+                  000022e0    00000064     cc3000_basic_wifi_application.obj (.text:initTrigger)
+                  00002344    00000058     cc3000lib.obj (.text:IntSpiGPIOHandler)
+                  0000239c    00000058     cc3000lib.obj (.text:socket)
+                  000023f4    00000058     cc3000lib.obj (.text:wlan_set_event_mask)
+                  0000244c    00000056     driverlib.lib : gpio.obj (.text:GPIOIntTypeSet)
+                  000024a2    00000002     --HOLE-- [fill = 0]
+                  000024a4    00000054     cc3000_basic_wifi_application.obj (.text:initWiFiEndpoint)
+                  000024f8    00000050     rtsv7M4_T_le_v4SPD16_eabi.lib : boot.obj (.text)
+                  00002548    0000004c     cc3000lib.obj (.text:SpiConfigureHwMapping)
+                  00002594    0000004c     cc3000lib.obj (.text:SpiOpen)
+                  000025e0    0000004c     rtsv7M4_T_le_v4SPD16_eabi.lib : cpy_tbl.obj (.text)
+                  0000262c    00000048     driverlib.lib : gpio.obj (.text:GPIOPinConfigure)
+                  00002674    00000048     cc3000lib.obj (.text:SpiTriggerRxProcessing)
+                  000026bc    00000048     driverlib.lib : sysctl.obj (.text:_SysCtlFrequencyGet)
+                  00002704    00000044     rtsv7M4_T_le_v4SPD16_eabi.lib : exit.obj (.text)
+                  00002748    00000040     cc3000lib.obj (.text:HostFlowControlConsumeBuff)
+                  00002788    00000040     rtsv7M4_T_le_v4SPD16_eabi.lib : u_divt2.obj (.text)
+                  000027c8    00000040     board.obj (.text:turnLedOff)
+                  00002808    0000003c     cc3000lib.obj (.text:SpiEnableSSIDMAChannels)
+                  00002844    0000003c     uartstdio.obj (.text:UARTFlushTx)
+                  00002880    0000003c     board.obj (.text:turnLedOn)
+                  000028bc    00000038     cc3000lib.obj (.text:hci_event_unsol_flowcontrol_handler)
+                  000028f4    00000038     board.obj (.text:initLEDs)
+                  0000292c    00000036     ustdlib.obj (.text:ustrncmp)
+                  00002962    00000002     --HOLE-- [fill = 0]
+                  00002964    00000034     driverlib.lib : sysctl.obj (.text:SysCtlPeripheralEnable)
+                  00002998    00000032     cc3000lib.obj (.text:hci_data_send)
+                  000029ca    00000002     --HOLE-- [fill = 0]
+                  000029cc    00000030     cc3000lib.obj (.text:SimpleLink_Init_Start)
+                  000029fc    00000030     cc3000lib.obj (.text:SpiDisableInterrupts)
+                  00002a2c    00000030     cc3000lib.obj (.text:SpiDisableSSIDMAChannels)
+                  00002a5c    00000030     cc3000lib.obj (.text:SpiResumeSpi)
+                  00002a8c    00000030     cc3000_basic_wifi_application.obj (.text:WIFI_sendGPSData)
+                  00002abc    0000002e     ustdlib.obj (.text:ustrstr)
+                  00002aea    00000002     --HOLE-- [fill = 0]
+                  00002aec    0000002c     cc3000_basic_wifi_application.obj (.text:KIntHandler)
+                  00002b18    0000002c     cc3000lib.obj (.text:SpiCleanGPIOISR)
+                  00002b44    0000002c     cc3000lib.obj (.text:SpiFlushRxFifo)
+                  00002b70    0000002c     uartstdio.obj (.text:UARTFlushRx)
+                  00002b9c    0000002c     cc3000lib.obj (.text:hci_unsolicited_event_handler)
+                  00002bc8    0000002c     cc3000lib.obj (.text:wlan_init)
+                  00002bf4    0000002a     driverlib.lib : gpio.obj (.text:GPIODirModeSet)
+                  00002c1e    00000002     --HOLE-- [fill = 0]
+                  00002c20    00000028     cc3000lib.obj (.text:set_socket_active_status)
+                  00002c48    00000024     cc3000lib.obj (.text:update_socket_active_status)
+                  00002c6c    00000022     cc3000lib.obj (.text:hci_command_send)
+                  00002c8e    00000002     --HOLE-- [fill = 0]
+                  00002c90    00000020     board.obj (.text:InitSysTick)
+                  00002cb0    00000020     cc3000lib.obj (.text:get_socket_active_status)
+                  00002cd0    0000001c     board.obj (.text:SysTickHandler)
+                  00002cec    0000001c     driverlib.lib : sysctl.obj (.text:_SysCtlMemTimingGet)
+                  00002d08    0000001c     board.obj (.text:initClk)
+                  00002d24    0000001a     cc3000lib.obj (.text:STREAM_TO_UINT32_f)
+                  00002d3e    0000001a     uartstdio.obj (.text:UARTprintf)
+                  00002d58    00000018     driverlib.lib : gpio.obj (.text:GPIOPinTypeGPIOOutput)
+                  00002d70    00000018     uartstdio.obj (.text:IsBufferFull)
+                  00002d88    00000018     cc3000lib.obj (.text:SpiIsDMAStopped)
+                  00002da0    00000018     cc3000lib.obj (.text:UINT32_TO_STREAM_f)
+                  00002db8    00000018     board.obj (.text:WriteWlanPin)
+                  00002dd0    00000018     rtsv7M4_T_le_v4SPD16_eabi.lib : args_main.obj (.text)
+                  00002de8    00000016     cc3000lib.obj (.text:init_spi)
+                  00002dfe    00000002     --HOLE-- [fill = 0]
+                  00002e00    00000014     cc3000lib.obj (.text:SimpleLinkWaitEvent)
+                  00002e14    00000014     cc3000lib.obj (.text:SpiContReadOperation)
+                  00002e28    00000014     cc3000lib.obj (.text:SpiReadHeader)
+                  00002e3c    00000014     driverlib.lib : systick.obj (.text:SysTickEnable)
+                  00002e50    00000014                   : systick.obj (.text:SysTickIntEnable)
+                  00002e64    00000014     rtsv7M4_T_le_v4SPD16_eabi.lib : _lock.obj (.text)
+                  00002e78    00000014     cc3000lib.obj (.text:sendto)
+                  00002e8c    00000012     driverlib.lib : gpio.obj (.text:GPIOPinTypeGPIOInput)
+                  00002e9e    00000012     ustdlib.obj (.text:ustrlen)
+                  00002eb0    00000010     driverlib.lib : fpu.obj (.text:FPUEnable)
+                  00002ec0    00000010                   : fpu.obj (.text:FPULazyStackingEnable)
+                  00002ed0    00000010     cc3000lib.obj (.text:SpiReceiveHandler)
+                  00002ee0    00000010     driverlib.lib : systick.obj (.text:SysTickPeriodSet)
+                  00002ef0    0000000e                   : gpio.obj (.text:GPIOIntDisable)
+                  00002efe    0000000e     uartstdio.obj (.text:IsBufferEmpty)
+                  00002f0c    0000000e     cc3000lib.obj (.text:STREAM_TO_UINT16_f)
+                  00002f1a    0000000e     rtsv7M4_T_le_v4SPD16_eabi.lib : copy_decompress_none.obj (.text:decompress:none)
+                  00002f28    0000000c     driverlib.lib : gpio.obj (.text:GPIOIntEnable)
+                  00002f34    0000000c     board.obj (.text:ReadWlanInterruptPin)
+                  00002f40    0000000c     cc3000lib.obj (.text:UINT16_TO_STREAM_f)
+                  00002f4c    0000000c     board.obj (.text:WlanInterruptDisable)
+                  00002f58    0000000c     board.obj (.text:WlanInterruptEnable)
+                  00002f64    0000000c     rtsv7M4_T_le_v4SPD16_eabi.lib : copy_zero_init.obj (.text:decompress:ZI)
+                  00002f70    0000000a     driverlib.lib : ssi.obj (.text:SSIDMADisable)
+                  00002f7a    00000008                   : ssi.obj (.text:SSIBusy)
+                  00002f82    00000008     cc3000_basic_wifi_application.obj (.text:sendBootLoaderPatch)
+                  00002f8a    00000008     cc3000_basic_wifi_application.obj (.text:sendDriverPatch)
+                  00002f92    00000008     cc3000_basic_wifi_application.obj (.text:sendWLFWPatch)
+                  00002f9a    00000006     driverlib.lib : gpio.obj (.text:GPIOPinRead)
+                  00002fa0    00000006                   : gpio.obj (.text:GPIOPinWrite)
+                  00002fa6    00000006     startup_ccs.obj (.text:ResetISR)
+                  00002fac    00000006     driverlib.lib : sysctl.obj (.text:SysCtlDelay)
+                  00002fb2    00000006                   : uart.obj (.text:UARTClockSourceSet)
+                  00002fb8    00000006                   : uart.obj (.text:UARTFIFOLevelSet)
+                  00002fbe    00000006     rtsv7M4_T_le_v4SPD16_eabi.lib : copy_decompress_rle.obj (.text:decompress:rle24)
+                  00002fc4    00000004     driverlib.lib : ssi.obj (.text:SSIIntClear)
+                  00002fc8    00000004     rtsv7M4_T_le_v4SPD16_eabi.lib : pre_init.obj (.text)
+
+.const     0    00002fcc    00000340     
+                  00002fcc    00000120     driverlib.lib : sysctl.obj (.const:g_pppui32XTALtoVCO)
+                  000030ec    00000090                   : gpio.obj (.const:g_pui32GPIOBaseAddrs)
+                  0000317c    00000070                   : interrupt.obj (.const)
+                  000031ec    0000006c                   : sysctl.obj (.const:g_pui32Xtals)
+                  00003258    00000040     board.obj (.const:g_psLEDs)
+                  00003298    00000030     driverlib.lib : sysctl.obj (.const:g_sXTALtoMEMTIM)
+                  000032c8    00000028     uartstdio.obj (.const)
+                  000032f0    00000012     uartstdio.obj (.const:.string)
+                  00003302    00000002     --HOLE-- [fill = 0]
+                  00003304    00000008     driverlib.lib : sysctl.obj (.const)
+
+.cinit     0    00003310    00000060     
+                  00003310    0000003a     (.cinit..data.load) [load image, compression = rle]
+                  0000334a    00000002     --HOLE-- [fill = 0]
+                  0000334c    0000000c     (__TI_handler_table)
+                  00003358    00000008     (.cinit..bss.load) [load image, compression = zero_init]
+                  00003360    00000010     (__TI_cinit_table)
+
+.init_array 
+*          0    00000000    00000000     UNINITIALIZED
+
+.stack     0    20000000    00004000     UNINITIALIZED
+                  20000000    00004000     --HOLE--
+
+.bss       0    20004000    00001396     UNINITIALIZED
+                  20004000    000005f0     cc3000lib.obj (.bss:wlan_rx_buffer)
+                  200045f0    000005f0     cc3000lib.obj (.bss:wlan_tx_buffer)
+                  20004be0    00000400     uartstdio.obj (.bss:g_pcUARTTxBuffer)
+                  20004fe0    00000010     (.common:g_tSocketAddr)
+                  20004ff0    00000004     (.common:GPSSize)
+                  20004ff4    00000004     (.common:g_ui32CC3000Connected)
+                  20004ff8    00000004     (.common:g_ui32CC3000DHCP)
+                  20004ffc    00000004     (.common:g_ui32CC3000DHCP_configured)
+                  20005000    00000200     cc3000lib.obj (.bss:ucDMAChannelControlStructure)
+                  20005200    00000080     uartstdio.obj (.bss:g_pcUARTRxBuffer)
+                  20005280    00000064     cc3000_basic_wifi_application.obj (.bss:GPS)
+                  200052e4    00000050     cc3000lib.obj (.bss:sSpiInformation)
+                  20005334    00000044     cc3000lib.obj (.bss:tSLInformation)
+                  20005378    00000004     (.common:g_ui32OkToDoShutDown)
+                  2000537c    00000004     (.common:g_ui32PortNum)
+                  20005380    00000004     (.common:g_ui32SmartConfigFinished)
+                  20005384    00000004     (.common:g_ui32SysClock)
+                  20005388    00000004     (.common:gpsFound)
+                  2000538c    00000004     (.common:i)
+                  20005390    00000004     (.common:msp430Trigger)
+                  20005394    00000001     (.common:g_bDisableEcho)
+                  20005395    00000001     (.common:g_ui8StopSmartConfig)
+
+.TI.noinit 
+*          0    20004000    00000000     UNINITIALIZED
+
+.data      0    20005398    0000006c     UNINITIALIZED
+                  20005398    00000022     cc3000_basic_wifi_application.obj (.data)
+                  200053ba    00000002     --HOLE--
+                  200053bc    00000015     uartstdio.obj (.data)
+                  200053d1    00000003     --HOLE--
+                  200053d4    00000014     cc3000lib.obj (.data)
+                  200053e8    00000008     rtsv7M4_T_le_v4SPD16_eabi.lib : _lock.obj (.data)
+                  200053f0    00000008                                   : exit.obj (.data)
+                  200053f8    00000004     board.obj (.data)
+                  200053fc    00000004     rtsv7M4_T_le_v4SPD16_eabi.lib : errno.obj (.data)
+                  20005400    00000004                                   : stkdepth_vars.obj (.data)
+
+.TI.persistent 
+*          0    20005398    00000000     UNINITIALIZED
+
+
+LINKER GENERATED COPY TABLES
+
+__TI_cinit_table @ 00003360 records: 2, size/record: 8, table size: 16
+	.data: load addr=00003310, load size=0000003a bytes, run addr=20005398, run size=0000006c bytes, compression=rle
+	.bss: load addr=00003358, load size=00000008 bytes, run addr=20004000, run size=00001396 bytes, compression=zero_init
+
+
+LINKER GENERATED HANDLER TABLE
+
+__TI_handler_table @ 0000334c records: 3, size/record: 4, table size: 12
+	index: 0, handler: __TI_decompress_rle24
+	index: 1, handler: __TI_decompress_none
+	index: 2, handler: __TI_zero_init
+
+
+GLOBAL SYMBOLS: SORTED ALPHABETICALLY BY Name 
+
+address   name                          
+-------   ----                          
+00002705  C$$EXIT                       
+0000051d  CC3000_UsynchCallback         
+00001785  DispatcherUARTConfigure       
+00001c35  DotDecimalDecoder             
+00002eb1  FPUEnable                     
+00002ec1  FPULazyStackingEnable         
+00002bf5  GPIODirModeSet                
+00002ef1  GPIOIntDisable                
+00002f29  GPIOIntEnable                 
+0000244d  GPIOIntTypeSet                
+000010b5  GPIOPadConfigSet              
+0000262d  GPIOPinConfigure              
+00002f9b  GPIOPinRead                   
+00002e8d  GPIOPinTypeGPIOInput          
+00002d59  GPIOPinTypeGPIOOutput         
+00002fa1  GPIOPinWrite                  
+20005280  GPS                           
+20004ff0  GPSSize                       
+00002c91  InitSysTick                   
+00002279  IntEnable                     
+00002345  IntSpiGPIOHandler             
+00002aed  KIntHandler                   
+00002f35  ReadWlanInterruptPin          
+00002fa7  ResetISR                      
+UNDEFED   SHT$$INIT_ARRAY$$Base         
+UNDEFED   SHT$$INIT_ARRAY$$Limit        
+00002f7b  SSIBusy                       
+00002f71  SSIDMADisable                 
+00002fc5  SSIIntClear                   
+00002f0d  STREAM_TO_UINT16_f            
+00002d25  STREAM_TO_UINT32_f            
+00002e01  SimpleLinkWaitEvent           
+00002b19  SpiCleanGPIOISR               
+00002549  SpiConfigureHwMapping         
+00001de1  SpiFirstWrite                 
+0000183d  SpiIntHandler                 
+00002595  SpiOpen                       
+00001d5d  SpiReadDataCont               
+00002ed1  SpiReceiveHandler             
+00002a5d  SpiResumeSpi                  
+00002675  SpiTriggerRxProcessing        
+000020c9  SpiWrite                      
+0000072d  SysCtlClockFreqSet            
+00002fad  SysCtlDelay                   
+00002965  SysCtlPeripheralEnable        
+00002e3d  SysTickEnable                 
+00002cd1  SysTickHandler                
+00002e51  SysTickIntEnable              
+00002ee1  SysTickPeriodSet              
+00002fb3  UARTClockSourceSet            
+00002fb9  UARTFIFOLevelSet              
+00002b71  UARTFlushRx                   
+00002845  UARTFlushTx                   
+00000e31  UARTIntHandler                
+000018f5  UARTStdioConfig               
+00000cd1  UARTStdioIntHandler           
+00002d3f  UARTprintf                    
+00000931  UARTvprintf                   
+00001a55  UARTwrite                     
+00002f41  UINT16_TO_STREAM_f            
+00002da1  UINT32_TO_STREAM_f            
+00002a8d  WIFI_sendGPSData              
+00002f4d  WlanInterruptDisable          
+00002f59  WlanInterruptEnable           
+00002db9  WriteWlanPin                  
+200053fc  _Errno                        
+20004000  __STACK_END                   
+00004000  __STACK_SIZE                  
+20004000  __STACK_TOP                   
+00003360  __TI_CINIT_Base               
+00003370  __TI_CINIT_Limit              
+0000334c  __TI_Handler_Table_Base       
+00003358  __TI_Handler_Table_Limit      
+000021a1  __TI_auto_init                
+200053f0  __TI_cleanup_ptr              
+00002f1b  __TI_decompress_none          
+00002fbf  __TI_decompress_rle24         
+200053f4  __TI_dtors_ptr                
+00000000  __TI_static_base__            
+00002f65  __TI_zero_init                
+00001fd7  __aeabi_idiv0                 
+00001f5d  __aeabi_memclr                
+00001f5d  __aeabi_memclr4               
+00001f5d  __aeabi_memclr8               
+00001afd  __aeabi_memcpy                
+00001afd  __aeabi_memcpy4               
+00001afd  __aeabi_memcpy8               
+00001f5f  __aeabi_memset                
+00001f5f  __aeabi_memset4               
+00001f5f  __aeabi_memset8               
+00002789  __aeabi_uidiv                 
+00002789  __aeabi_uidivmod              
+ffffffff  __binit__                     
+ffffffff  __c_args__                    
+20000000  __stack                       
+00002dd1  _args_main                    
+000024f9  _c_int00                      
+200053e8  _lock                         
+00002e73  _nop                          
+00002e6b  _register_lock                
+00002e65  _register_unlock              
+00002fc9  _system_pre_init              
+200053ec  _unlock                       
+00002709  abort                         
+ffffffff  binit                         
+000025e1  copy_in                       
+00002711  exit                          
+20005398  g_bSocketConnected            
+200053a8  g_pcCC3000_prefix             
+200053ab  g_pcdevice_name               
+00000000  g_pfnVectors                  
+00003258  g_psLEDs                      
+200053d8  g_pui8Dummy                   
+20004fe0  g_tSocketAddr                 
+200053a4  g_ui32BindFlag                
+20004ff4  g_ui32CC3000Connected         
+20004ff8  g_ui32CC3000DHCP              
+20004ffc  g_ui32CC3000DHCP_configured   
+20005378  g_ui32OkToDoShutDown          
+20005380  g_ui32SmartConfigFinished     
+2000539c  g_ui32Socket                  
+200053a0  g_ui32SocketType              
+20005384  g_ui32SysClock                
+20005395  g_ui8StopSmartConfig          
+200053e4  g_uluDMAErrCount              
+00002cb1  get_socket_active_status      
+20005388  gpsFound                      
+00002c6d  hci_command_send              
+00002999  hci_data_send                 
+00000201  hci_event_handler             
+000015f1  hci_patch_send                
+00000b1d  hci_unsol_event_handler       
+00002051  hci_unsol_handle_patch_request
+00002b9d  hci_unsolicited_event_handler 
+2000538c  i                             
+00002d09  initClk                       
+000019a5  initGPS                       
+000028f5  initLEDs                      
+000022e1  initTrigger                   
+00001309  initWiFiAndSysUART            
+000024a5  initWiFiEndpoint              
+00002de9  init_spi                      
+000011e5  main                          
+20005400  main_func_sp                  
+00001afd  memcpy                        
+00001f65  memset                        
+20005390  msp430Trigger                 
+00001525  pio_init                      
+200052e4  sSpiInformation               
+00002f83  sendBootLoaderPatch           
+00002f8b  sendDriverPatch               
+00002f93  sendWLFWPatch                 
+00002e79  sendto                        
+00002c21  set_socket_active_status      
+0000239d  socket                        
+200053d4  socket_active_status          
+20005334  tSLInformation                
+200053da  tSpiReadHeader                
+000027c9  turnLedOff                    
+00002881  turnLedOn                     
+00002e9f  ustrlen                       
+0000292d  ustrncmp                      
+00002abd  ustrstr                       
+00001b99  ustrtoul                      
+000016bd  wlan_connect                  
+00002bc9  wlan_init                     
+20004000  wlan_rx_buffer                
+000023f5  wlan_set_event_mask           
+00001ee1  wlan_start                    
+200045f0  wlan_tx_buffer                
+
+
+GLOBAL SYMBOLS: SORTED BY Symbol Address 
+
+address   name                          
+-------   ----                          
+00000000  __TI_static_base__            
+00000000  g_pfnVectors                  
+00000201  hci_event_handler             
+0000051d  CC3000_UsynchCallback         
+0000072d  SysCtlClockFreqSet            
+00000931  UARTvprintf                   
+00000b1d  hci_unsol_event_handler       
+00000cd1  UARTStdioIntHandler           
+00000e31  UARTIntHandler                
+000010b5  GPIOPadConfigSet              
+000011e5  main                          
+00001309  initWiFiAndSysUART            
+00001525  pio_init                      
+000015f1  hci_patch_send                
+000016bd  wlan_connect                  
+00001785  DispatcherUARTConfigure       
+0000183d  SpiIntHandler                 
+000018f5  UARTStdioConfig               
+000019a5  initGPS                       
+00001a55  UARTwrite                     
+00001afd  __aeabi_memcpy                
+00001afd  __aeabi_memcpy4               
+00001afd  __aeabi_memcpy8               
+00001afd  memcpy                        
+00001b99  ustrtoul                      
+00001c35  DotDecimalDecoder             
+00001d5d  SpiReadDataCont               
+00001de1  SpiFirstWrite                 
+00001ee1  wlan_start                    
+00001f5d  __aeabi_memclr                
+00001f5d  __aeabi_memclr4               
+00001f5d  __aeabi_memclr8               
+00001f5f  __aeabi_memset                
+00001f5f  __aeabi_memset4               
+00001f5f  __aeabi_memset8               
+00001f65  memset                        
+00001fd7  __aeabi_idiv0                 
+00002051  hci_unsol_handle_patch_request
+000020c9  SpiWrite                      
+000021a1  __TI_auto_init                
+00002279  IntEnable                     
+000022e1  initTrigger                   
+00002345  IntSpiGPIOHandler             
+0000239d  socket                        
+000023f5  wlan_set_event_mask           
+0000244d  GPIOIntTypeSet                
+000024a5  initWiFiEndpoint              
+000024f9  _c_int00                      
+00002549  SpiConfigureHwMapping         
+00002595  SpiOpen                       
+000025e1  copy_in                       
+0000262d  GPIOPinConfigure              
+00002675  SpiTriggerRxProcessing        
+00002705  C$$EXIT                       
+00002709  abort                         
+00002711  exit                          
+00002789  __aeabi_uidiv                 
+00002789  __aeabi_uidivmod              
+000027c9  turnLedOff                    
+00002845  UARTFlushTx                   
+00002881  turnLedOn                     
+000028f5  initLEDs                      
+0000292d  ustrncmp                      
+00002965  SysCtlPeripheralEnable        
+00002999  hci_data_send                 
+00002a5d  SpiResumeSpi                  
+00002a8d  WIFI_sendGPSData              
+00002abd  ustrstr                       
+00002aed  KIntHandler                   
+00002b19  SpiCleanGPIOISR               
+00002b71  UARTFlushRx                   
+00002b9d  hci_unsolicited_event_handler 
+00002bc9  wlan_init                     
+00002bf5  GPIODirModeSet                
+00002c21  set_socket_active_status      
+00002c6d  hci_command_send              
+00002c91  InitSysTick                   
+00002cb1  get_socket_active_status      
+00002cd1  SysTickHandler                
+00002d09  initClk                       
+00002d25  STREAM_TO_UINT32_f            
+00002d3f  UARTprintf                    
+00002d59  GPIOPinTypeGPIOOutput         
+00002da1  UINT32_TO_STREAM_f            
+00002db9  WriteWlanPin                  
+00002dd1  _args_main                    
+00002de9  init_spi                      
+00002e01  SimpleLinkWaitEvent           
+00002e3d  SysTickEnable                 
+00002e51  SysTickIntEnable              
+00002e65  _register_unlock              
+00002e6b  _register_lock                
+00002e73  _nop                          
+00002e79  sendto                        
+00002e8d  GPIOPinTypeGPIOInput          
+00002e9f  ustrlen                       
+00002eb1  FPUEnable                     
+00002ec1  FPULazyStackingEnable         
+00002ed1  SpiReceiveHandler             
+00002ee1  SysTickPeriodSet              
+00002ef1  GPIOIntDisable                
+00002f0d  STREAM_TO_UINT16_f            
+00002f1b  __TI_decompress_none          
+00002f29  GPIOIntEnable                 
+00002f35  ReadWlanInterruptPin          
+00002f41  UINT16_TO_STREAM_f            
+00002f4d  WlanInterruptDisable          
+00002f59  WlanInterruptEnable           
+00002f65  __TI_zero_init                
+00002f71  SSIDMADisable                 
+00002f7b  SSIBusy                       
+00002f83  sendBootLoaderPatch           
+00002f8b  sendDriverPatch               
+00002f93  sendWLFWPatch                 
+00002f9b  GPIOPinRead                   
+00002fa1  GPIOPinWrite                  
+00002fa7  ResetISR                      
+00002fad  SysCtlDelay                   
+00002fb3  UARTClockSourceSet            
+00002fb9  UARTFIFOLevelSet              
+00002fbf  __TI_decompress_rle24         
+00002fc5  SSIIntClear                   
+00002fc9  _system_pre_init              
+00003258  g_psLEDs                      
+0000334c  __TI_Handler_Table_Base       
+00003358  __TI_Handler_Table_Limit      
+00003360  __TI_CINIT_Base               
+00003370  __TI_CINIT_Limit              
+00004000  __STACK_SIZE                  
+20000000  __stack                       
+20004000  __STACK_END                   
+20004000  __STACK_TOP                   
+20004000  wlan_rx_buffer                
+200045f0  wlan_tx_buffer                
+20004fe0  g_tSocketAddr                 
+20004ff0  GPSSize                       
+20004ff4  g_ui32CC3000Connected         
+20004ff8  g_ui32CC3000DHCP              
+20004ffc  g_ui32CC3000DHCP_configured   
+20005280  GPS                           
+200052e4  sSpiInformation               
+20005334  tSLInformation                
+20005378  g_ui32OkToDoShutDown          
+20005380  g_ui32SmartConfigFinished     
+20005384  g_ui32SysClock                
+20005388  gpsFound                      
+2000538c  i                             
+20005390  msp430Trigger                 
+20005395  g_ui8StopSmartConfig          
+20005398  g_bSocketConnected            
+2000539c  g_ui32Socket                  
+200053a0  g_ui32SocketType              
+200053a4  g_ui32BindFlag                
+200053a8  g_pcCC3000_prefix             
+200053ab  g_pcdevice_name               
+200053d4  socket_active_status          
+200053d8  g_pui8Dummy                   
+200053da  tSpiReadHeader                
+200053e4  g_uluDMAErrCount              
+200053e8  _lock                         
+200053ec  _unlock                       
+200053f0  __TI_cleanup_ptr              
+200053f4  __TI_dtors_ptr                
+200053fc  _Errno                        
+20005400  main_func_sp                  
+ffffffff  __binit__                     
+ffffffff  __c_args__                    
+ffffffff  binit                         
+UNDEFED   SHT$$INIT_ARRAY$$Base         
+UNDEFED   SHT$$INIT_ARRAY$$Limit        
+
+[170 symbols]
