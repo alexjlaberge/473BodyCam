@@ -14,6 +14,11 @@ main.obj: E:/TI/tivaware/driverlib/ssi.h
 main.obj: E:/TI/tivaware/inc/hw_memmap.h
 main.obj: E:/TI/tivaware/inc/hw_types.h
 main.obj: E:/TI/tivaware/inc/hw_ssi.h
+main.obj: E:/TI/tivaware/third_party/fatfs/src/ff.h
+main.obj: E:/TI/tivaware/third_party/fatfs/src/integer.h
+main.obj: E:/TI/tivaware/third_party/fatfs/src/ffconf.h
+main.obj: E:/TI/tivaware/third_party/fatfs/src/ff.c
+main.obj: E:/TI/tivaware/third_party/fatfs/src/diskio.h
 
 ../main.c: 
 E:/TI/tivaware/inc/hw_ints.h: 
@@ -29,3 +34,8 @@ E:/TI/tivaware/driverlib/ssi.h:
 E:/TI/tivaware/inc/hw_memmap.h: 
 E:/TI/tivaware/inc/hw_types.h: 
 E:/TI/tivaware/inc/hw_ssi.h: 
+E:/TI/tivaware/third_party/fatfs/src/ff.h: 
+E:/TI/tivaware/third_party/fatfs/src/integer.h: 
+E:/TI/tivaware/third_party/fatfs/src/ffconf.h: 
+E:/TI/tivaware/third_party/fatfs/src/ff.c: 
+E:/TI/tivaware/third_party/fatfs/src/diskio.h: 

@@ -10,7 +10,6 @@ main.obj: E:/TI/tivaware/driverlib/pin_map.h
 main.obj: E:/TI/tivaware/driverlib/rom.h
 main.obj: E:/TI/tivaware/driverlib/rom_map.h
 main.obj: E:/TI/tivaware/driverlib/sysctl.h
-main.obj: E:/TI/tivaware/driverlib/uart.h
 main.obj: E:/TI/tivaware/driverlib/ssi.h
 main.obj: E:/TI/tivaware/driverlib/fpu.h
 main.obj: E:/TI/tivaware/driverlib/systick.h
@@ -35,7 +34,6 @@ E:/TI/tivaware/driverlib/pin_map.h:
 E:/TI/tivaware/driverlib/rom.h: 
 E:/TI/tivaware/driverlib/rom_map.h: 
 E:/TI/tivaware/driverlib/sysctl.h: 
-E:/TI/tivaware/driverlib/uart.h: 
 E:/TI/tivaware/driverlib/ssi.h: 
 E:/TI/tivaware/driverlib/fpu.h: 
 E:/TI/tivaware/driverlib/systick.h: 

@@ -1,5 +1,37 @@
+/*
+ * sdcv3.c
+ *
+ *  Created on: 2015Äê11ÔÂ16ÈÕ
+ *      Author: Jiang
+ */
 
 
+/*-----------------------------------------------------------------------*/
+/* MMC/SDC (in SPI mode) control module  (C)ChaN, 2007                   */
+/*-----------------------------------------------------------------------*/
+/* Only rcvr_spi(), xmit_spi(), disk_timerproc() and some macros         */
+/* are platform dependent.                                               */
+/*-----------------------------------------------------------------------*/
+
+/*
+ * This file was modified from a sample available from the FatFs
+ * web site. It was modified to work with an EK-TM4C129EXL evaluation
+ * board.
+ */
+/*
+
+#include <stdint.h>
+#include <stdbool.h>
+#include "inc/hw_memmap.h"
+#include "inc/hw_types.h"
+#include "driverlib/gpio.h"
+#include "driverlib/pin_map.h"
+#include "driverlib/rom.h"
+#include "driverlib/rom_map.h"
+#include "driverlib/ssi.h"
+#include "driverlib/sysctl.h"
+#include "fatfs/src/diskio.h"
+*/
 
 
 
@@ -37,52 +69,11 @@
 
 
 
-/* Peripheral definitions for EK-TM4C129EXL board */
-/* SSI port */
-#define SDC_SSI_BASE            	SSI2_BASE
-#define SDC_SSI_SYSCTL_PERIPH   	SYSCTL_PERIPH_SSI2
-/* GPIO for SSI pins */
-/* CLK pin */
-#define SDC_SSI_CLK_GPIO_PORT_BASE  GPIO_PORTD_BASE
-#define SDC_SSI_CLK             	GPIO_PIN_3
-/* TX pin */
-#define SDC_SSI_TX_GPIO_PORT_BASE   GPIO_PORTD_BASE
-#define SDC_SSI_TX              	GPIO_PIN_1
-/* RX pin */
-#define SDC_SSI_RX_GPIO_PORT_BASE   GPIO_PORTD_BASE
-#define SDC_SSI_RX              	GPIO_PIN_0
-/* CS pin */
-#define SDC_SSI_FSS_GPIO_PORT_BASE  GPIO_PORTD_BASE
-#define SDC_SSI_FSS             	GPIO_PIN_2
-
-
-
-#define PATH_BUF_SIZE   80
-
-
-
-//#define SDC_SSI_BASE            SSI3_BASE
-//#define SDC_SSI_SYSCTL_PERIPH   SYSCTL_PERIPH_SSI3
-
-/* GPIO for SSI pins */
-/* CLK pin */
-//#define SDC_SSI_CLK_GPIO_PORT_BASE   GPIO_PORTQ_BASE
-//#define SDC_SSI_CLK             GPIO_PIN_0
-/* TX pin */
-//#define SDC_SSI_TX_GPIO_PORT_BASE   GPIO_PORTF_BASE
-//#define SDC_SSI_TX              GPIO_PIN_0
-/* RX pin */
-//#define SDC_SSI_RX_GPIO_PORT_BASE   GPIO_PORTQ_BASE
-//#define SDC_SSI_RX              GPIO_PIN_2
-/* CS pin */
-//#define SDC_SSI_FSS_GPIO_PORT_BASE   GPIO_PORTH_BASE
-//#define SDC_SSI_FSS             GPIO_PIN_4
-
-
-
-
-
-
+static FATFS fatFS;
+static DIR dir;
+static FILINFO fileInfo;
+static FIL fil;
+//static FIL file;
 
 
 
@@ -107,35 +98,27 @@
 
 
 
+/* Peripheral definitions for EK-TM4C129EXL board */
+/* SSI port */
+#define SDC_SSI_BASE            SSI1_BASE
+#define SDC_SSI_SYSCTL_PERIPH   SYSCTL_PERIPH_SSI1
 
+/* GPIO for SSI pins */
+/* CLK pin */
+#define SDC_SSI_CLK_GPIO_PORT_BASE   GPIO_PORTB_BASE
+#define SDC_SSI_CLK             GPIO_PIN_5
+/* TX pin */
+#define SDC_SSI_TX_GPIO_PORT_BASE   GPIO_PORTE_BASE
+#define SDC_SSI_TX              GPIO_PIN_4
+/* RX pin */
+#define SDC_SSI_RX_GPIO_PORT_BASE   GPIO_PORTE_BASE
+#define SDC_SSI_RX              GPIO_PIN_5
+/* CS pin */
+#define SDC_SSI_FSS_GPIO_PORT_BASE   GPIO_PORTB_BASE
+#define SDC_SSI_FSS             GPIO_PIN_4
 
-static FATFS fatFS;
-static DIR dir;
-static FILINFO fileInfo;
-static FIL fil;
-//static FIL file;
-
-
-
-
-
-
-
-static char path[PATH_BUF_SIZE] = "/";
-
-
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-
-
-
-// The system clock frequency in Hz.
-uint32_t systemClock;
-
-
+/* must be supplied by the application */
+uint32_t g_ui32SysClock;
 
 /* asserts the CS pin to the card */
 static
@@ -265,7 +248,6 @@ void send_initial_clock_train(void)
 /* When the target system does not support socket power control, there   */
 /* is nothing to do in these functions and chk_power always returns 1.   */
 
-
 static
 void power_on (void)
 {
@@ -276,23 +258,18 @@ void power_on (void)
 
     /* Enable the peripherals used to drive the SDC on SSI */
     SysCtlPeripheralEnable(SDC_SSI_SYSCTL_PERIPH);
-    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOD);
-    //ROM_SysCtlPeripheralEnable(SDC_SSI_SYSCTL_PERIPH);
-    //SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOQ);
-    //SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOF);
-    //SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOH);
-
-    // Configure GPIO Pins for SSI mode.
-    GPIOPinConfigure(GPIO_PD0_SSI2XDAT1);
-    GPIOPinConfigure(GPIO_PD1_SSI2XDAT0);
-    GPIOPinConfigure(GPIO_PD2_SSI2FSS);
-    GPIOPinConfigure(GPIO_PD3_SSI2CLK);
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOE);
 
     /*
      * Configure the appropriate pins to be SSI instead of GPIO. The FSS (CS)
      * signal is directly driven to ensure that we can hold it low through a
      * complete transaction with the SD card.
      */
+    GPIOPinConfigure(GPIO_PB5_SSI1CLK);
+    GPIOPinConfigure(GPIO_PE4_SSI1XDAT0);
+    GPIOPinConfigure(GPIO_PE5_SSI1XDAT1);
+
     GPIOPinTypeSSI(SDC_SSI_TX_GPIO_PORT_BASE, SDC_SSI_TX);
     GPIOPinTypeSSI(SDC_SSI_RX_GPIO_PORT_BASE, SDC_SSI_RX);
     GPIOPinTypeSSI(SDC_SSI_CLK_GPIO_PORT_BASE, SDC_SSI_CLK);
@@ -311,8 +288,8 @@ void power_on (void)
     GPIOPadConfigSet(SDC_SSI_FSS_GPIO_PORT_BASE, SDC_SSI_FSS,
                          GPIO_STRENGTH_4MA, GPIO_PIN_TYPE_STD);
 
-    /* Configure the SSI2 port */
-    SSIConfigSetExpClk(SDC_SSI_BASE, systemClock,
+    /* Configure the SSI1 port */
+    SSIConfigSetExpClk(SDC_SSI_BASE, g_ui32SysClock,
                            SSI_FRF_MOTO_MODE_0, SSI_MODE_MASTER, 400000, 8);
     SSIEnable(SDC_SSI_BASE);
 
@@ -322,7 +299,6 @@ void power_on (void)
 
     PowerFlag = 1;
 }
-
 
 // set the SSI speed to the max setting
 static
@@ -334,14 +310,14 @@ void set_max_speed(void)
     SSIDisable(SDC_SSI_BASE);
 
     /* Set the maximum speed as half the system clock, with a max of 12.5 MHz. */
-    i = systemClock / 2;
+    i = g_ui32SysClock / 2;
     if(i > 12500000)
     {
         i = 12500000;
     }
 
-    /* Configure the SSI2 port to run at 12.5MHz */
-    SSIConfigSetExpClk(SDC_SSI_BASE, systemClock,
+    /* Configure the SSI0 port to run at 12.5MHz */
+    SSIConfigSetExpClk(SDC_SSI_BASE, g_ui32SysClock,
                            SSI_FRF_MOTO_MODE_0, SSI_MODE_MASTER, i, 8);
 
     /* Enable the SSI */
@@ -832,28 +808,6 @@ DWORD get_fattime (void)
 
 
 
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 int main(void) {
     FRESULT iFResult;
 
@@ -864,7 +818,7 @@ int main(void) {
     FPULazyStackingEnable();
 
     // Run from the PLL at 120 MHz.
-    systemClock = SysCtlClockFreqSet((SYSCTL_XTAL_25MHZ |
+    g_ui32SysClock = SysCtlClockFreqSet((SYSCTL_XTAL_25MHZ |
     								  SYSCTL_OSC_MAIN |
 									  SYSCTL_USE_PLL |
 									  SYSCTL_CFG_VCO_480), 120000000);
@@ -876,7 +830,7 @@ int main(void) {
 
 
     // Configure SysTick for a 100Hz interrupt.
-    SysTickPeriodSet(systemClock / 100);
+    SysTickPeriodSet(g_ui32SysClock / 100);
     SysTickEnable();
     SysTickIntEnable();
 
@@ -893,7 +847,7 @@ int main(void) {
     //GPIOPinTypeUART(GPIO_PORTA_BASE, GPIO_PIN_0 | GPIO_PIN_1);
 
     // Initialize the UART for console I/O.
-    //UARTStdioConfig(0, 115200, systemClock);
+    //UARTStdioConfig(0, 115200, g_ui32SysClock);
 
     //UARTprintf("\n\nSD Card Example Program\n");
 
@@ -907,7 +861,7 @@ int main(void) {
     	//UARTprintf("SD card mounted.\n");
     }
 
-    iFResult = f_opendir(&dir, path);
+    iFResult = f_opendir(&dir, "/");
 
     // Check for error and return if there is a problem.
     if(iFResult != FR_OK) {
@@ -959,3 +913,14 @@ int main(void) {
 	iFResult = f_close(&fil);
 	f_mount(0, NULL);
  }
+
+
+
+
+
+
+
+
+
+
+
