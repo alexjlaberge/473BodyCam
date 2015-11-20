@@ -50,7 +50,10 @@
 								<option id="com.ti.ccstudio.buildDefinitions.TMS470_15.9.compilerID.OPT_LEVEL.1134223764" name="Optimization level (--opt_level, -O)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_15.9.compilerID.OPT_LEVEL" value="com.ti.ccstudio.buildDefinitions.TMS470_15.9.compilerID.OPT_LEVEL.2" valueType="enumerated"/>
 								<option id="com.ti.ccstudio.buildDefinitions.TMS470_15.9.compilerID.INCLUDE_PATH.655748840" name="Add dir to #include search path (--include_path, -I)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_15.9.compilerID.INCLUDE_PATH" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${CG_TOOL_ROOT}/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${SW_ROOT}/examples/boards/ek-tm4c1294xl-boost-cc3000&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/cc3000/src/spi}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/cc3000/src/uart}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/cc3000/src/host_driver/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/cc3000/src/host_driver/core_driver}&quot;"/>
 									<listOptionValue builtIn="false" value="${workspace_loc:/cc3000_basic_wifi_application}"/>
 									<listOptionValue builtIn="false" value="${workspace_loc:/cc3000_basic_wifi_application/cc3000}"/>
 									<listOptionValue builtIn="false" value="${workspace_loc:\cc3000_basic_wifi_application\cc3000\drivers\ek-tm4c129}"/>
@@ -77,7 +80,6 @@
 								<option id="com.ti.ccstudio.buildDefinitions.TMS470_15.9.linkerID.OUTPUT_FILE.2074341784" name="Specify output file name (--output_file, -o)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_15.9.linkerID.OUTPUT_FILE" value="&quot;${ProjName}.out&quot;" valueType="string"/>
 								<option id="com.ti.ccstudio.buildDefinitions.TMS470_15.9.linkerID.LIBRARY.1767972199" name="Include library file or command file as input (--library, -l)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_15.9.linkerID.LIBRARY" valueType="libs">
 									<listOptionValue builtIn="false" value="&quot;libc.a&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${SW_ROOT}/driverlib/ccs/Debug/driverlib.lib&quot;"/>
 								</option>
 								<option id="com.ti.ccstudio.buildDefinitions.TMS470_15.9.linkerID.SEARCH_PATH.1442926675" name="Add &lt;dir&gt; to library search path (--search_path, -i)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_15.9.linkerID.SEARCH_PATH" valueType="libPaths">
 									<listOptionValue builtIn="false" value="&quot;${CG_TOOL_ROOT}/lib&quot;"/>

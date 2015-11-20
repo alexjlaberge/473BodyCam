@@ -35,7 +35,7 @@
 #ifndef __WLAN_H__
 #define __WLAN_H__
 
-#include "common/cc3000_common.h"
+#include "cc3000_common.h"
 
 //*****************************************************************************
 //

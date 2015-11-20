@@ -35,7 +35,7 @@
 #ifndef __SECURITY__
 #define __SECURITY__
 
-#include "common/cc3000_common.h"
+#include "cc3000_common.h"
 
 //*****************************************************************************
 //
