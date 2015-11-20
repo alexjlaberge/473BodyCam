@@ -1,1 +1,6 @@
 *.pdf
+*.obj
+*.pp
+*.mk
+*/Debug/*
+**/.settings/*
