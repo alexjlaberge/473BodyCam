@@ -51,17 +51,11 @@
 								<option id="com.ti.ccstudio.buildDefinitions.TMS470_15.9.compilerID.INCLUDE_PATH.655748840" name="Add dir to #include search path (--include_path, -I)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_15.9.compilerID.INCLUDE_PATH" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${CG_TOOL_ROOT}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${SW_ROOT}/examples/boards/ek-tm4c1294xl-boost-cc3000&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\Users\Al\workspace_v6_1\cc3000_basic_wifi_application&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\Users\Al\workspace_v6_1\cc3000_basic_wifi_application\cc3000&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\Users\Al\workspace_v6_1\cc3000_basic_wifi_application\cc3000\drivers\ek-tm4c129&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\Users\Al\workspace_v6_1\cc3000_basic_wifi_application\ff11a&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\Users\Al\workspace_v6_1\cc3000_basic_wifi_application\usblib&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\Users\Al\workspace_v6_1\cc3000_basic_wifi_application\cc3000\src\host_driver\core_driver&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\Users\Al\workspace_v6_1\cc3000_basic_wifi_application\cc3000\src\host_driver\include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\Users\Al\workspace_v6_1\cc3000_basic_wifi_application\cc3000\src\host_driver&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\Users\Al\workspace_v6_1\cc3000_basic_wifi_application\cc3000\src&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\Users\Al\workspace_v6_1\cc3000_basic_wifi_application\cc3000\src\spi&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\Users\Al\workspace_v6_1\cc3000_basic_wifi_application\cc3000\src\uart&quot;"/>
+									<listOptionValue builtIn="false" value="${workspace_loc:/cc3000_basic_wifi_application}"/>
+									<listOptionValue builtIn="false" value="${workspace_loc:/cc3000_basic_wifi_application/cc3000}"/>
+									<listOptionValue builtIn="false" value="${workspace_loc:\cc3000_basic_wifi_application\cc3000\drivers\ek-tm4c129}"/>
+									<listOptionValue builtIn="false" value="${workspace_loc:\cc3000_basic_wifi_application\ff11a}"/>
+									<listOptionValue builtIn="false" value="${workspace_loc:\cc3000_basic_wifi_application\usblib}"/>
 								</option>
 								<option id="com.ti.ccstudio.buildDefinitions.TMS470_15.9.compilerID.DEBUGGING_MODEL.1272027770" name="Debugging model" superClass="com.ti.ccstudio.buildDefinitions.TMS470_15.9.compilerID.DEBUGGING_MODEL" value="com.ti.ccstudio.buildDefinitions.TMS470_15.9.compilerID.DEBUGGING_MODEL.SYMDEBUG__DWARF" valueType="enumerated"/>
 								<option id="com.ti.ccstudio.buildDefinitions.TMS470_15.9.compilerID.DISPLAY_ERROR_NUMBER.1467779149" name="Emit diagnostic identifier numbers (--display_error_number, -pden)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_15.9.compilerID.DISPLAY_ERROR_NUMBER" value="true" valueType="boolean"/>
