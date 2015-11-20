@@ -1,10 +1,3 @@
-/*
- * uvc.h
- *
- *  Created on: Oct 20, 2015
- *      Author: Alec
- */
-
 #ifndef UVC_H_
 #define UVC_H_
 
@@ -15,6 +8,33 @@
 #include <usblib/usblib.h>
 
 #include <usblib/host/usbhost.h>
+
+/**
+ * @brief Instance of a USB driver to be registered with USBLib
+ */
+extern const tUSBHostClassDriver uvc_driver;
+
+/**
+ * @brief Initializes the UVC driver code
+ * @param uvc_frame_start_cb This callback informs that a frame has begun
+ * @param uvc_frame_data_cb This callback passes a chunk of raw frame data
+ * @param uvc_frame_end_cb This callback informs that a frame has ended
+ *
+ * @details This function must be called, or there is no way of getting image
+ * data. These callbacks may be blocking as they are not called in an
+ * interrupt.
+ */
+void uvc_init(void (*uvc_frame_start_cb)(void),
+	void (*uvc_frame_data_cb)(uint8_t *data, size_t len),
+	void (*uvc_frame_end_cb)(void));
+
+/**
+ * @brief This function must be called in the main application loop
+ *
+ * @details This function calls some USBLib stuff as appropriate, and also
+ * schedules data transfers from the connected camera.
+ */
+void uvc_main(void);
 
 #define UVC_VERSION 0x150
 #define UVC_SC_UNDEFINED 0x00
@@ -74,8 +94,6 @@
 #define UVC_VS_PROBE_CONTROL_SET_CUR 0x01
 #define UVC_VS_PROBE_CONTROL_GET_CUR 0x81
 #define UVC_VS_COMMIT_CONTROL_SET_CUR 0x01
-
-extern const tUSBHostClassDriver uvc_driver;
 
 /**
  * @brief Video data descriptor
@@ -442,7 +460,5 @@ size_t uvc_parse_uncomp_format_desc(uint8_t *buf, size_t max_len);
 uint32_t uvc_set_iface(void);
 
 uint32_t uvc_probe_set_cur(void);
-
-void uvc_main(void);
 
 #endif /* UVC_H_ */
