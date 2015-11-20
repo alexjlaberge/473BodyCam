@@ -1,10 +1,3 @@
-/*
- * uvc.c
- *
- *  Created on: Oct 21, 2015
- *      Author: Alec
- */
-
 #include "uvc.h"
 
 #include <stdlib.h>
@@ -1199,4 +1192,11 @@ size_t uvc_parse_uncomp_format_desc(uint8_t *buf, size_t max_len)
 	}
 
 	return i;
+}
+
+void uvc_init(void (*uvc_frame_start_cb)(void),
+	void (*uvc_frame_data_cb)(uint8_t *buf, size_t len),
+	void (*uvc_frame_end_cb)(void))
+{
+	return;
 }
