@@ -128,6 +128,10 @@ struct camera_device
 	uint32_t target_bit_rate;
 	uint16_t uvc_version;
 
+	void (*start_cb)(void);
+	void (*data_cb)(uint8_t *buf, size_t len);
+	void (*end_cb)(void);
+
 	uint32_t stream_pipe;
 	uint8_t stream_iface;
 	uint8_t stream_iface_alt;
@@ -160,6 +164,8 @@ static void * uvc_open(tUSBHostDevice *dev);
  * @brief Called by usblib during device shutdown
  */
 static void uvc_close(void *dev);
+
+void uvc_parse_received_packet(uint8_t *buf, size_t len);
 
 /**
  * @brief Callback for pipe status changes
@@ -479,9 +485,7 @@ static void uvc_pipe_cb(uint32_t pipe, uint32_t event)
 			break;
 		case USB_EVENT_RX_AVAILABLE:
 			len = USBHCDPipeTransferSizeGet(pipe);
-			pkt_len = cam_stream_buf[0];
-			pkt_type = cam_stream_buf[1];
-			pkt_subtype = cam_stream_buf[2];
+			uvc_parse_received_packet(cam_stream_buf, len);
 			USBHCDPipeDataAck(pipe);
 			break;
 		default:
@@ -492,6 +496,27 @@ static void uvc_pipe_cb(uint32_t pipe, uint32_t event)
 	else
 	{
 		uvc_parsing_fault(15);
+	}
+}
+
+void uvc_parse_received_packet(uint8_t *buf, size_t len)
+{
+	static uint8_t fid = 2;
+
+	if (cam_inst.stream_format == UVC_VS_FORMAT_UNCOMPRESSED)
+	{
+		if (fid != buf[1] & 0x01)
+		{
+			cam_inst.start_cb();
+			fid = buf[1] & 0x01;
+		}
+
+		cam_inst.data_cb(buf + buf[0], len - buf[0]);
+
+		if (buf[1] & 0x02)
+		{
+			cam_inst.end_cb();
+		}
 	}
 }
 
@@ -1425,6 +1450,8 @@ void uvc_init(uint32_t target_bit_rate,
 	void (*uvc_frame_data_cb)(const uint8_t *buf, size_t len),
 	void (*uvc_frame_end_cb)(void))
 {
+	cam_inst.start_cb = uvc_frame_start_cb;
+	cam_inst.data_cb = uvc_frame_data_cb;
+	cam_inst.end_cb = uvc_frame_end_cb;
 	cam_inst.target_bit_rate = target_bit_rate;
-	return;
 }
