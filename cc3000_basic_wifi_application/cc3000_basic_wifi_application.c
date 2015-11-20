@@ -913,8 +913,6 @@ main(void)
 	//uint32_t ui32SysClock;
 	uint32_t ui32SysClock;
 	    CAMERA_STATE = CAMERA_UNCONNECTED;
-		struct uvc_iad iad;
-		tConfigDescriptor conf;
 		ui32SysClock = SysCtlClockFreqSet((SYSCTL_XTAL_25MHZ |
 		                                           SYSCTL_OSC_MAIN |
 		                                           SYSCTL_USE_PLL |
@@ -972,7 +970,6 @@ main(void)
             switch (CAMERA_STATE)
             {
                 case CAMERA_INIT:
-                	conf = uvc_get_config();
     				uvc_probe_set_cur();
     				uvc_set_iface();
                 	CAMERA_STATE = CAMERA_CONNECTED;
@@ -989,11 +986,6 @@ main(void)
                     break;
             }
 
-            if (CAMERA_STATE == CAMERA_CONNECTED &&
-            		conf.bLength != 9)
-            {
-            	break;
-            }
     	//USBHCDPipeSchedule(cam_inst.stream.pipe, cam_stream_buf,
     			//VIDEO_BUFFER_SIZE);
 
