@@ -315,7 +315,8 @@ size_t uvc_parse_mjpeg_format_desc(uint8_t *buf, size_t max_len);
  * @param max_len Maximum length to parse
  * @return The amount of data parsed
  */
-size_t uvc_parse_mjpeg_frame_desc(uint8_t *buf, size_t max_len);
+size_t uvc_parse_mjpeg_frame_desc(uint8_t *buf, size_t max_len,
+	uint8_t fmt_idx);
 
 /**
  * @brief Parse a Class Specific Video Streaming Input Header
@@ -1005,14 +1006,8 @@ size_t uvc_parse_cs_vs_input_header(uint8_t *buf, size_t max_len)
 			case UVC_VS_FORMAT_MJPEG:
 				len = uvc_parse_mjpeg_format_desc(buf + i, max_len - i);
 				break;
-			case UVC_VS_FRAME_MJPEG:
-				len = uvc_parse_mjpeg_frame_desc(buf + i, max_len - i);
-				break;
 			case UVC_VS_FORMAT_H264:
 				len = uvc_parse_h264_format_desc(buf + i, max_len - i);
-				break;
-			case UVC_VS_FRAME_H264:
-				len = uvc_parse_h264_frame_desc(buf + i, max_len - i);
 				break;
 			case UVC_VS_FORMAT_UNCOMPRESSED:
 				len = uvc_parse_uncomp_format_desc(buf + i, max_len - i);
@@ -1041,41 +1036,72 @@ size_t uvc_parse_cs_vs_input_header(uint8_t *buf, size_t max_len)
 size_t uvc_parse_mjpeg_format_desc(uint8_t *buf, size_t max_len)
 {
 	uint8_t len = buf[0];
-	uint8_t subtype;
+	uint8_t subtype = buf[2];
+	uint8_t idx = buf[3];
+	size_t i = 0;
 
 	if (len > max_len)
 	{
 		return 0;
 	}
 
-	/* TODO this will probably require further implementation */
-
-	return len;
-}
-
-size_t uvc_parse_mjpeg_frame_desc(uint8_t *buf, size_t max_len)
-{
-	uint8_t len = buf[0];
-	uint16_t *width;
-	uint16_t *height;
-	uint8_t index;
-	uint8_t subtype;
-
-	if (len > max_len)
-	{
-		return 0;
-	}
-
-	subtype = buf[2];
-
-	if (subtype != UVC_VS_FRAME_MJPEG)
+	if (subtype != USB_DTYPE_CS_INTERFACE)
 	{
 		uvc_parsing_fault(0);
 	}
 
-	index = buf[3];
-	width = (uint16_t *) (buf + 5);
-	height = (uint16_t *) (buf + 7);
+	i += len;
+	while (i < max_len)
+	{
+		size_t procd = uvc_parse_mjpeg_frame_desc(buf + i, max_len - i, idx);
+		if (procd != 0)
+		{
+			i += procd;
+		}
+		else
+		{
+			break;
+		}
+	}
+
+	return i;
+}
+
+size_t uvc_parse_mjpeg_frame_desc(uint8_t *buf, size_t max_len,
+	uint8_t fmt_idx)
+{
+	uint8_t len = buf[0];
+	uint8_t type = buf[1];
+	uint8_t subtype = buf[2];
+	uint32_t *max_rate;
+	uint32_t *ival;
+	uint8_t idx;
+
+	if (len < 26 ||
+		type != USB_DTYPE_CS_INTERFACE ||
+		subtype != UVC_VS_FRAME_MJPEG)
+	{
+		return 0;
+	}
+
+	idx = buf[3];
+	max_rate = (uint32_t *) (buf + 13);
+	ival = (uint32_t *) (buf + 26);
+
+	if (*max_rate > cam_inst.stream_max_bandwidth &&
+		*max_rate <= cam_inst.target_bit_rate &&
+		(
+			(cam_inst.stream_format == 0) ||
+			(cam_inst.stream_format == UVC_VS_FORMAT_UNCOMPRESSED) ||
+			(cam_inst.stream_format == UVC_VS_FORMAT_MJPEG)
+		))
+	{
+		cam_inst.stream_format_idx = fmt_idx;
+		cam_inst.stream_frame_idx = idx;
+		cam_inst.stream_format = UVC_VS_FORMAT_MJPEG;
+		cam_inst.stream_max_bandwidth = *max_rate;
+		cam_inst.frame_interval = *ival;
+	}
 
 	return len;
 }
