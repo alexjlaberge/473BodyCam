@@ -951,8 +951,8 @@ main(void)
   //  ROM_SysCtlDelay(400000000);
 
     //Initialize WiFi and corresponding debug UART
-    //initWiFiAndSysUART();
-    //initWiFiEndpoint();
+    initWiFiAndSysUART();
+    initWiFiEndpoint();
     //ROM_IntMasterEnable();
 
     //Initialize SD Card Writer

@@ -5,9 +5,11 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#include <usblib/usblib.h>
+#include <driverlib/usb.h>
 
+#include <usblib/usblib.h>
 #include <usblib/host/usbhost.h>
+#include <usblib/host/usbhostpriv.h>
 
 extern const tUSBHostClassDriver uvc_driver;
 

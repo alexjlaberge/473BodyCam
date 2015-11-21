@@ -1,11 +1,5 @@
 #include "uvc.h"
 
-#include <stdlib.h>
-
-#include <usblib/usblib.h>
-#include <usblib/host/usbhost.h>
-#include <usblib/host/usbhostpriv.h>
-
 #define INT_BUFFER_SIZE 64
 #define VIDEO_BUFFER_SIZE 256
 
