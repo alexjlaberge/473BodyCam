@@ -878,15 +878,25 @@ void initTrigger()
 	ROM_SysCtlPeripheralSleepEnable(SYSCTL_PERIPH_GPIOK);
 }
 
-#if defined(ewarm)
-#pragma data_alignment=1024
-tDMAControlTable g_sDMAControlTable[6];
-#elif defined(ccs)
-#pragma DATA_ALIGN(g_sDMAControlTable, 1024)
-tDMAControlTable g_sDMAControlTable[6];
-#else
-tDMAControlTable g_sDMAControlTable[6] __attribute__ ((aligned(1024)));
-#endif
+void uvc_start_cb(void)
+{
+	return;
+}
+
+void uvc_data_cb(const uint8_t *buf, size_t len)
+{
+	size_t heyo = len;
+
+	if (heyo == 0)
+	{
+		return;
+	}
+}
+
+void uvc_end_cb(void)
+{
+	return;
+}
 
 int
 main(void)
@@ -931,6 +941,7 @@ main(void)
 	USBHCDRegisterDrivers(0, g_ppHostClassDrivers, g_ui32NumHostClassDrivers);
 	USBHCDPowerConfigInit(0, USBHCD_VBUS_AUTO_HIGH | USBHCD_VBUS_FILTER);
 	USBHCDInit(0, MEM_POOL, MEM_POOL_SIZE);
+	uvc_init(10000000, uvc_start_cb, uvc_data_cb, uvc_end_cb);
     //Initialize GPS stuff
     //initGPS();
 	//ROM_IntEnable(INT_UART6);
