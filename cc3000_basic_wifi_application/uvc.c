@@ -336,7 +336,7 @@ size_t uvc_parse_h264_frame_desc(uint8_t *buf, size_t max_len);
 /**
  * @brief An endless while to preserve state for debugging
  */
-void uvc_parsing_fault(uint8_t i);
+void uvc_parsing_fault(uint32_t i);
 
 /**
  * @brief Entrypoint for parsing the control packets
@@ -944,7 +944,7 @@ size_t uvc_parse_extension_unit(uint8_t *buf, size_t max_len)
 	return buf[0];
 }
 
-void uvc_parsing_fault(uint8_t i)
+void uvc_parsing_fault(uint32_t i)
 {
 	while (1)
 	{
@@ -1234,7 +1234,7 @@ uint32_t uvc_probe_set_cur(void)
 	case 0x150:
 		return uvc_probe_set_cur_15();
 	default:
-		return uvc_probe_set_cur_15();
+		uvc_parsing_fault(cam_inst.uvc_version);
 	}
 }
 
