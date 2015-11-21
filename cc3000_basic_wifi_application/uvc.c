@@ -493,10 +493,10 @@ static void uvc_pipe_cb(uint32_t pipe, uint32_t event)
 			break;
 		}
 	}
-	else
-	{
-		uvc_parsing_fault(15);
-	}
+	//else
+	//{
+	//	uvc_parsing_fault(15);
+	//}
 }
 
 void uvc_parse_received_packet(uint8_t *buf, size_t len)
@@ -528,11 +528,10 @@ void uvc_main(void)
 
 void uvc_parse_all_config(void)
 {
-	tUSBRequest req;
-	size_t len;
-	size_t i, iface, endpt;
+	size_t i;
 	size_t procd;
 	uint8_t *buf = (uint8_t *) cam_inst.device->psConfigDescriptor;
+	size_t len = cam_inst.device->ui32ConfigDescriptorSize;
 
 	// jump past the standard configuration descriptor
 	i = buf[0];
@@ -1210,17 +1209,29 @@ size_t uvc_parse_streaming_endpoint(uint8_t *buf, size_t max_len)
 		uvc_parsing_fault(0);
 	}
 
-	if (cam_inst.device != NULL)
+	if ((addr & 0x80) == 0)
 	{
-		cam_inst.stream_endpt = addr & 0x0F;
-
-		cam_inst.stream_pipe = USBHCDPipeAllocSize(0, USBHCD_PIPE_ISOC_IN_DMA,
-				cam_inst.device, *max_packet_size, uvc_pipe_cb);
-
-		err = USBHCDPipeConfig(cam_inst.stream_pipe, *max_packet_size,
-				interval,
-				cam_inst.stream_endpt);
+		return len;
 	}
+
+	if ((attr & 0x03) != 0x01)
+	{
+		return len;
+	}
+
+	if (cam_inst.stream_pipe != 0)
+	{
+		return len;
+	}
+
+	cam_inst.stream_endpt = addr & 0x0F;
+
+	cam_inst.stream_pipe = USBHCDPipeAllocSize(0, USBHCD_PIPE_ISOC_IN_DMA,
+			cam_inst.device, *max_packet_size, uvc_pipe_cb);
+
+	err = USBHCDPipeConfig(cam_inst.stream_pipe, *max_packet_size,
+			interval,
+			cam_inst.stream_endpt);
 
 	return len;
 }
