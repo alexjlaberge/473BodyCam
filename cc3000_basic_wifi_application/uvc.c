@@ -398,7 +398,7 @@ static void * uvc_open(tUSBHostDevice *dev)
 	{
 		//iface = USBDescGetInterface(dev->psConfigDescriptor, 0, 0);
 
-		//cam_inst.device = dev;
+		cam_inst.device = dev;
 		//cam_inst.in_use = 1;
 
 		//for (i = 0; i < iface->bNumEndpoints; i++)
