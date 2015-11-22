@@ -69,6 +69,9 @@
 #include "security.h"
 #include "application_commands.h"
 
+#define WIFI_IMG_START "yo new image"
+#define WIFI_IMG_END "kthxbye"
+
 int i;
 volatile int gpsFound;
 volatile char GPS[100];
@@ -873,14 +876,15 @@ void initTrigger()
 	ROM_SysCtlPeripheralSleepEnable(SYSCTL_PERIPH_GPIOK);
 }
 
+volatile uint8_t usb_starting = 0;
 void uvc_start_cb(void)
 {
-	return;
+	usb_starting = 1;
 }
 
 #define USB_BUF_SIZE 256
-uint8_t usb_buf[USB_BUF_SIZE];
-size_t usb_buf_len = 0;
+volatile uint8_t usb_buf[USB_BUF_SIZE];
+volatile size_t usb_buf_len = 0;
 void uvc_data_cb(const uint8_t *buf, size_t len)
 {
 	if (len > 0 && usb_buf_len == 0)
@@ -894,9 +898,10 @@ void uvc_data_cb(const uint8_t *buf, size_t len)
 	}
 }
 
+volatile uint8_t usb_ending = 0;
 void uvc_end_cb(void)
 {
-	return;
+	usb_ending = 1;
 }
 
 int
@@ -1009,6 +1014,20 @@ main(void)
                 default:
                     break;
             }
+
+		if (usb_ending)
+		{
+			char *msg = WIFI_IMG_END;
+			WIFI_sendUSBData((const uint8_t *) msg, strlen(WIFI_IMG_END));
+			usb_ending = 0;
+		}
+
+		if (usb_starting)
+		{
+			char *msg = WIFI_IMG_START;
+			WIFI_sendUSBData((const uint8_t *) msg, strlen(WIFI_IMG_START));
+			usb_starting = 0;
+		}
 
         if (usb_buf_len > 0)
         {
