@@ -498,7 +498,8 @@ void uvc_parse_received_packet(uint8_t *buf, size_t len)
 {
 	static uint8_t fid = 2;
 
-	if (cam_inst.stream_format == UVC_VS_FORMAT_UNCOMPRESSED)
+	if (cam_inst.stream_format == UVC_VS_FORMAT_UNCOMPRESSED ||
+		cam_inst.stream_format == UVC_VS_FORMAT_MJPEG)
 	{
 		if (fid != buf[1] & 0x01)
 		{
