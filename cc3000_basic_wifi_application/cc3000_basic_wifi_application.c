@@ -404,6 +404,7 @@ CC3000_UsynchCallback(long lEventType, char *pcData, unsigned char ucLength)
     {
         UARTprintf("\r    Received Unsolicited Disconnect from CC3000\n>");
 
+        msp430Trigger = 1;
         g_ui32CC3000Connected = 0;
         g_ui32CC3000DHCP = 0;
         g_ui32CC3000DHCP_configured = 0;
@@ -877,11 +878,19 @@ void uvc_start_cb(void)
 	return;
 }
 
+#define USB_BUF_SIZE 256
+uint8_t usb_buf[USB_BUF_SIZE];
+size_t usb_buf_len = 0;
 void uvc_data_cb(const uint8_t *buf, size_t len)
 {
-	if (len > 0)
+	if (len > 0 && usb_buf_len == 0)
 	{
-		WIFI_sendUSBData(buf, len);
+		size_t i;
+		for (i = 0; i < len && i < USB_BUF_SIZE; i++)
+		{
+			usb_buf[i] = buf[i];
+		}
+		usb_buf_len = i;
 	}
 }
 
@@ -949,10 +958,15 @@ main(void)
     wlan_connect(WLAN_SEC_WPA2, "AndroidAP", ustrlen("AndroidAP"),NULL, "password", ustrlen("password"));
     while(!g_ui32CC3000DHCP)
     {
+    	if(msp430Trigger)
+    	{
+    		wlan_connect(WLAN_SEC_WPA2, "AndroidAP", ustrlen("AndroidAP"),NULL, "password", ustrlen("password"));
+    		msp430Trigger = 0;
+    	}
 
     }
     g_ui32Socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-
+    WIFI_sendUSBData("Hello", 5);
 
     //Initialize SD Card Writer
     //TODO
@@ -995,6 +1009,12 @@ main(void)
                 default:
                     break;
             }
+
+        if (usb_buf_len > 0)
+        {
+        	WIFI_sendUSBData(usb_buf, usb_buf_len);
+        	usb_buf_len = 0;
+        }
 
     	//USBHCDPipeSchedule(cam_inst.stream.pipe, cam_stream_buf,
     			//VIDEO_BUFFER_SIZE);
