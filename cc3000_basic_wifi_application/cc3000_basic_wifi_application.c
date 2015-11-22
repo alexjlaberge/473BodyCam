@@ -657,20 +657,14 @@ DotDecimalDecoder(char *pcString, uint8_t *pui8Val1, uint8_t *pui8Val2,
 //
 //*****************************************************************************
 int
-WIFI_sendUSBData()
+WIFI_sendUSBData(const uint8_t * buf, size_t size)
 {
-    char * pui8Data;
-    uint32_t ui32DataLength;
 
-    pui8Data = GPS;
-
-    ui32DataLength = GPSSize;
-
-    if(g_ui32SocketType == IPPROTO_UDP)
-    {
-        sendto(g_ui32Socket, pui8Data, ui32DataLength, 0,
+    //if(g_ui32SocketType == IPPROTO_UDP)
+   // {
+        sendto(g_ui32Socket, buf, size, 0,
                             &g_tSocketAddr,sizeof(sockaddr));
-    }
+   // }
 
     return(0);
 }
@@ -885,11 +879,9 @@ void uvc_start_cb(void)
 
 void uvc_data_cb(const uint8_t *buf, size_t len)
 {
-	size_t heyo = len;
-
-	if (heyo == 0)
+	if (len > 0)
 	{
-		return;
+		WIFI_sendUSBData(buf, len);
 	}
 }
 
@@ -905,9 +897,9 @@ main(void)
 
     //Initialize WiFi flags
     //msp430Trigger = 0;
-    //g_ui32CC3000DHCP = 0;
+    g_ui32CC3000DHCP = 0;
     //g_ui32CC3000Connected = 0;
-    //g_ui32Socket = SENTINEL_EMPTY;
+    g_ui32Socket = SENTINEL_EMPTY;
     //g_ui32BindFlag = SENTINEL_EMPTY;
    // g_ui32SmartConfigFinished = 0;
    // gpsFound = 0;
@@ -953,7 +945,14 @@ main(void)
     //Initialize WiFi and corresponding debug UART
     initWiFiAndSysUART();
     initWiFiEndpoint();
-    //ROM_IntMasterEnable();
+    ROM_IntMasterEnable();
+    wlan_connect(WLAN_SEC_WPA2, "AndroidAP", ustrlen("AndroidAP"),NULL, "password", ustrlen("password"));
+    while(!g_ui32CC3000DHCP)
+    {
+
+    }
+    g_ui32Socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+
 
     //Initialize SD Card Writer
     //TODO
