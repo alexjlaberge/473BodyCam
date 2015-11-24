@@ -46,7 +46,7 @@
 #include "driverlib/rom.h"
 #include "driverlib/rom_map.h"
 #include "driverlib/sysctl.h"
-//#include "driverlib/uart.h"
+#include "driverlib/uart.h"
 #include "driverlib/ssi.h"
 #include "driverlib/fpu.h"
 #include "driverlib/systick.h"
@@ -100,22 +100,22 @@ static FIL fil;
 
 /* Peripheral definitions for EK-TM4C129EXL board */
 /* SSI port */
-#define SDC_SSI_BASE            SSI1_BASE
-#define SDC_SSI_SYSCTL_PERIPH   SYSCTL_PERIPH_SSI1
+#define SDC_SSI_BASE            SSI0_BASE//SSI1_BASE
+#define SDC_SSI_SYSCTL_PERIPH   SYSCTL_PERIPH_SSI0//SYSCTL_PERIPH_SSI1
 
 /* GPIO for SSI pins */
 /* CLK pin */
-#define SDC_SSI_CLK_GPIO_PORT_BASE   GPIO_PORTB_BASE
-#define SDC_SSI_CLK             GPIO_PIN_5
+#define SDC_SSI_CLK_GPIO_PORT_BASE   GPIO_PORTA_BASE//GPIO_PORTB_BASE
+#define SDC_SSI_CLK            GPIO_PIN_2//GPIO_PIN_5
 /* TX pin */
-#define SDC_SSI_TX_GPIO_PORT_BASE   GPIO_PORTE_BASE
-#define SDC_SSI_TX              GPIO_PIN_4
+#define SDC_SSI_TX_GPIO_PORT_BASE   GPIO_PORTA_BASE//GPIO_PORTE_BASE
+#define SDC_SSI_TX             GPIO_PIN_4 //GPIO_PIN_4
 /* RX pin */
-#define SDC_SSI_RX_GPIO_PORT_BASE   GPIO_PORTE_BASE
-#define SDC_SSI_RX              GPIO_PIN_5
+#define SDC_SSI_RX_GPIO_PORT_BASE   GPIO_PORTA_BASE//GPIO_PORTE_BASE
+#define SDC_SSI_RX              GPIO_PIN_5//GPIO_PIN_5
 /* CS pin */
-#define SDC_SSI_FSS_GPIO_PORT_BASE   GPIO_PORTB_BASE
-#define SDC_SSI_FSS             GPIO_PIN_4
+#define SDC_SSI_FSS_GPIO_PORT_BASE   GPIO_PORTA_BASE//GPIO_PORTB_BASE
+#define SDC_SSI_FSS            GPIO_PIN_3 //GPIO_PIN_4
 
 /* must be supplied by the application */
 uint32_t g_ui32SysClock;
@@ -258,17 +258,17 @@ void power_on (void)
 
     /* Enable the peripherals used to drive the SDC on SSI */
     SysCtlPeripheralEnable(SDC_SSI_SYSCTL_PERIPH);
-    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);
-    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOE);
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);//SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);
+    //SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOE);
 
     /*
      * Configure the appropriate pins to be SSI instead of GPIO. The FSS (CS)
      * signal is directly driven to ensure that we can hold it low through a
      * complete transaction with the SD card.
      */
-    GPIOPinConfigure(GPIO_PB5_SSI1CLK);
-    GPIOPinConfigure(GPIO_PE4_SSI1XDAT0);
-    GPIOPinConfigure(GPIO_PE5_SSI1XDAT1);
+    GPIOPinConfigure(GPIO_PA2_SSI0CLK);//GPIOPinConfigure(GPIO_PB5_SSI1CLK);
+    GPIOPinConfigure(GPIO_PA4_SSI0XDAT0);//GPIOPinConfigure(GPIO_PE4_SSI1XDAT0);
+    GPIOPinConfigure(GPIO_PA5_SSI0XDAT1);//GPIOPinConfigure(GPIO_PE5_SSI1XDAT1);
 
     GPIOPinTypeSSI(SDC_SSI_TX_GPIO_PORT_BASE, SDC_SSI_TX);
     GPIOPinTypeSSI(SDC_SSI_RX_GPIO_PORT_BASE, SDC_SSI_RX);
@@ -781,6 +781,27 @@ void disk_timerproc (void)
 
 }
 
+
+
+//*****************************************************************************
+//
+// This is the handler for this SysTick interrupt.  FatFs requires a timer tick
+// every 10 ms for internal timing purposes.
+//
+//*****************************************************************************
+void
+SysTickHandler(void)
+{
+    //
+    // Call the FatFs tick timer.
+    //
+    disk_timerproc();
+}
+
+
+
+
+
 /*---------------------------------------------------------*/
 /* User Provided Timer Function for FatFs module           */
 /*---------------------------------------------------------*/
@@ -861,7 +882,7 @@ int main(void) {
     	//UARTprintf("SD card mounted.\n");
     }
 
-    iFResult = f_opendir(&dir, "/");
+    iFResult = f_opendir(&dir, "");
 
     // Check for error and return if there is a problem.
     if(iFResult != FR_OK) {
@@ -874,30 +895,30 @@ int main(void) {
     }
 
     // Enter loop to enumerate through all directory entries.
-    for(;;) {
+    //for(;;) {
         // Read an entry from the directory.
-        iFResult = f_readdir(&dir, &fileInfo);
+      //  iFResult = f_readdir(&dir, &fileInfo);
 
         // Check for error and return if there is a problem.
-        if(iFResult != FR_OK) {
-        	//UARTprintf("Error from SD Card: %s\n",StringFromFResult(iFResult));
-            return(iFResult);
-        }
+       // if(iFResult != FR_OK) {
+       // 	//UARTprintf("Error from SD Card: %s\n",StringFromFResult(iFResult));
+       //     return(iFResult);
+      //  }
 
         // If the file name is blank, then this is the end of the listing.
-        if(!fileInfo.fname[0]) {
-            break;
-        }
+       // if(!fileInfo.fname[0]) {
+        //    break;
+       // }
 
         // Print file names
         //UARTprintf("(%c) %s\n", (fileInfo.fattrib & AM_DIR) ? 'D' : 'F',fileInfo.fname);
-    }
+   // }
 
    // UARTprintf("Done");
 
     //FIL fil;
 	uint32_t count_num = 8*1024;
-	iFResult = f_open(&fil, "a.txt", FA_CREATE_NEW|FA_WRITE);
+	iFResult = f_open(&fil, "bbb.txt", FA_CREATE_ALWAYS|FA_WRITE);
 	SysCtlDelay(SysCtlClockGet()/3);
 	if(iFResult != FR_OK) {
 		//UARTprintf("fresult: %s\n", StringFromFResult(iFResult));

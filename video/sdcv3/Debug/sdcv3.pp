@@ -10,6 +10,7 @@ sdcv3.obj: E:/TI/tivaware/driverlib/pin_map.h
 sdcv3.obj: E:/TI/tivaware/driverlib/rom.h
 sdcv3.obj: E:/TI/tivaware/driverlib/rom_map.h
 sdcv3.obj: E:/TI/tivaware/driverlib/sysctl.h
+sdcv3.obj: E:/TI/tivaware/driverlib/uart.h
 sdcv3.obj: E:/TI/tivaware/driverlib/ssi.h
 sdcv3.obj: E:/TI/tivaware/driverlib/fpu.h
 sdcv3.obj: E:/TI/tivaware/driverlib/systick.h
@@ -34,6 +35,7 @@ E:/TI/tivaware/driverlib/pin_map.h:
 E:/TI/tivaware/driverlib/rom.h: 
 E:/TI/tivaware/driverlib/rom_map.h: 
 E:/TI/tivaware/driverlib/sysctl.h: 
+E:/TI/tivaware/driverlib/uart.h: 
 E:/TI/tivaware/driverlib/ssi.h: 
 E:/TI/tivaware/driverlib/fpu.h: 
 E:/TI/tivaware/driverlib/systick.h: 
