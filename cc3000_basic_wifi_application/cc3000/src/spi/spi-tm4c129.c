@@ -48,7 +48,7 @@
 // The size of the DMA channel control structure we need in bytes.
 //
 //*****************************************************************************
-#define DMA_CHANNEL_CONTROL_STRUCTURE_SIZE  (512)
+#define DMA_CHANNEL_CONTROL_STRUCTURE_SIZE  (1024)
 
 //*****************************************************************************
 //

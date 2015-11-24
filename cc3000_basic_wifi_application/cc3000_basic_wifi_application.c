@@ -84,29 +84,6 @@ FATFS sdVolume;			// FatFs work area needed for each volume
 FIL logfile;			// File object needed for each open file
 uint16_t fp;			// Used for sizeof
 
-#ifdef DEBUG
-//*****************************************************************************
-//
-// The error routine that is called if the driver library encounters an error.
-//
-//*****************************************************************************
-void
-__error__(char *pcFilename, uint32_t ui32Line)
-{
-    //
-    // Tell the user about the error reported.
-    //
-    UARTprintf("Runtime error at line %d of file %s!\n", ui32Line, pcFilename);
-
-    while(1)
-    {
-        //
-        // Hang here to allow debug.
-        //
-    }
-}
-#endif // DEBUG
-
 //*****************************************************************************
 //
 //  Global variables used by this program for event tracking.
@@ -165,56 +142,17 @@ uint32_t g_ui32BindFlag = SENTINEL_EMPTY;
 //*****************************************************************************
 char g_pcCC3000_prefix[] = {'T', 'T', 'T'};
 
-//*****************************************************************************
-//
-// Input buffer for the command line interpreter.
-//
-//*****************************************************************************
-static char g_cInput[MAX_COMMAND_SIZE];
-
-//*****************************************************************************
-//
-// Device name used by default for smart config response & mDNS advertising.
-//
-//*****************************************************************************
-char g_pcdevice_name[] = "home_assistant";
-
-//*****************************************************************************
-//
-// AES key "smartconfigAES16"
-//
-//*****************************************************************************
 const uint8_t g_pui8smartconfigkey[] = {0x73,0x6d,0x61,0x72,0x74,0x63,0x6f,
                                         0x6e,0x66,0x69,0x67,0x41,0x45,0x53,
                                         0x31,0x36};
 
-//*****************************************************************************
-//__no_init is used to prevent the buffer initialization in order to
-// prevent hardware WDT expiration  before entering 'main()'.
-//for every IDE, different syntax exists :
-// __CCS__ for CCS v5
-// __IAR_SYSTEMS_ICC__ for IAR Embedded Workbench
-//
-// Reception from the air, buffer - the max data length  + headers
-//
-//*****************************************************************************
-
-//
-// Code Composer Studio pragmas.
-//
 #if defined(__CCS__) || defined(ccs)
 uint8_t g_pui8CC3000_Rx_Buffer[CC3000_APP_BUFFER_SIZE +
                                             CC3000_RX_BUFFER_OVERHEAD_SIZE];
 #endif
 
 
-//*****************************************************************************
-//
-// This function returns a pointer to the driver patch.  Since there is
-// no patch (patches are taken from the EEPROM and not from the host) it
-// returns NULL.
-//
-//*****************************************************************************
+
 char *
 sendDriverPatch(unsigned long *Length)
 {
@@ -222,13 +160,6 @@ sendDriverPatch(unsigned long *Length)
     return(NULL);
 }
 
-//*****************************************************************************
-//
-// This function returns a pointer to the bootloader patch.  Since there
-// is no patch (patches are taken from the EEPROM and not from the host)
-// it returns NULL.
-//
-//*****************************************************************************
 char *
 sendBootLoaderPatch(unsigned long *Length)
 {
@@ -663,12 +594,11 @@ DotDecimalDecoder(char *pcString, uint8_t *pui8Val1, uint8_t *pui8Val2,
 int
 WIFI_sendUSBData(const uint8_t * buf, size_t size)
 {
-
-    //if(g_ui32SocketType == IPPROTO_UDP)
-   // {
-        sendto(g_ui32Socket, buf, size, 0,
+	int a;
+	a = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+        sendto(a, buf, size, 0,
                             &g_tSocketAddr,sizeof(sockaddr));
-   // }
+    closesocket(a);
 
     return(0);
 }
@@ -683,11 +613,9 @@ WIFI_sendGPSData()
 
     ui32DataLength = GPSSize;
 
-    //if(g_ui32SocketType == IPPROTO_UDP)
-    //{
+
         sendto(g_ui32Socket, pui8Data, ui32DataLength, 0,
                             &g_tSocketAddr,sizeof(sockaddr));
-    //}
 
     return(0);
 }
@@ -704,12 +632,16 @@ void
 KIntHandler(void)
 {
 	uint32_t ui32Status;
-	msp430Trigger = 1;
+	if(msp430Trigger)
+		msp430Trigger = 0;
+	else
+		msp430Trigger = 1;
 	ui32Status = ROM_GPIOIntStatus(GPIO_PORTK_BASE, true);
 	ROM_GPIOIntClear(GPIO_PORTK_BASE, ui32Status);
+	//GPIOPinWrite(GPIO_PORTB_BASE, GPIO_PIN_5, 0x20);
 	//Disable K Interrupts
-	ROM_IntDisable(INT_GPIOK);
-	ROM_UARTIntDisable(GPIO_PORTK_BASE, GPIO_INT_PIN_4);
+	//ROM_IntDisable(INT_GPIOK);
+	//ROM_UARTIntDisable(GPIO_PORTK_BASE, GPIO_INT_PIN_4);
 }
 
 void
@@ -824,14 +756,6 @@ int readTrigger()
 	return k4;
 }
 
-void USB_getData(){
-
-}
-
-SD_saveData(){
-
-}
-
 initWiFiEndpoint()
 {
 	uint8_t ui32Port = 80;
@@ -840,7 +764,7 @@ initWiFiEndpoint()
 	//
 	// Extract IP Address.
 	//
-	DotDecimalDecoder("192.168.43.39",&ui8IPBlock1,&ui8IPBlock2,&ui8IPBlock3,
+	DotDecimalDecoder("10.0.1.17",&ui8IPBlock1,&ui8IPBlock2,&ui8IPBlock3,
 									&ui8IPBlock4);
 
 	//
@@ -870,6 +794,8 @@ void initTrigger()
 	ROM_GPIODirModeSet(GPIO_PORTK_BASE, GPIO_PIN_4, GPIO_DIR_MODE_IN);
 	MAP_GPIOPadConfigSet(GPIO_PORTK_BASE, GPIO_PIN_4,
 						 GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD);
+	GPIOIntTypeSet(GPIO_PORTK_BASE, GPIO_PIN_4,
+			GPIO_BOTH_EDGES);
 	ROM_GPIOIntEnable(GPIO_PORTK_BASE, GPIO_INT_PIN_4);
 	ROM_GPIOIntEnable(GPIO_PORTK_BASE, GPIO_INT_PIN_4);
 	ROM_IntEnable(INT_GPIOK);
@@ -907,16 +833,9 @@ void uvc_end_cb(void)
 int
 main(void)
 {
-	//UINT bw;
-
-    //Initialize WiFi flags
-    //msp430Trigger = 0;
     g_ui32CC3000DHCP = 0;
-    //g_ui32CC3000Connected = 0;
     g_ui32Socket = SENTINEL_EMPTY;
-    //g_ui32BindFlag = SENTINEL_EMPTY;
-   // g_ui32SmartConfigFinished = 0;
-   // gpsFound = 0;
+
 
     //Initialize MSP430 Trigger (PK4)
 	//initTrigger();
@@ -926,74 +845,51 @@ main(void)
 	//SysCtlSleepPowerSet(SYSCTL_SRAM_STANDBY);
 
     //Initialize USB
-	//uint32_t ui32SysClock;
 	uint32_t ui32SysClock;
-	    CAMERA_STATE = CAMERA_UNCONNECTED;
-		ui32SysClock = SysCtlClockFreqSet((SYSCTL_XTAL_25MHZ |
-		                                           SYSCTL_OSC_MAIN |
-		                                           SYSCTL_USE_PLL |
-		                                           SYSCTL_CFG_VCO_480), 120000000);
+	CAMERA_STATE = CAMERA_UNCONNECTED;
+	ui32SysClock = SysCtlClockFreqSet((SYSCTL_XTAL_25MHZ |
+		                               SYSCTL_OSC_MAIN |
+		                               SYSCTL_USE_PLL |
+		                               SYSCTL_CFG_VCO_480), 120000000);
 	configure_pins();
 
 	SysTickPeriodSet(ui32SysClock / TICKS_PER_SECOND);
-	    SysTickEnable();
-	    SysTickIntEnable();
+	SysTickEnable();
+	SysTickIntEnable();
 
-	    SysCtlPeripheralEnable(SYSCTL_PERIPH_UDMA);
-	    uDMAEnable();
-	    uDMAControlBaseSet(g_sDMAControlTable);
+	SysCtlPeripheralEnable(SYSCTL_PERIPH_UDMA);
+	uDMAEnable();
+	uDMAControlBaseSet(g_sDMAControlTable);
 
 	USBStackModeSet(0, eUSBModeHost, 0);
 	USBHCDRegisterDrivers(0, g_ppHostClassDrivers, g_ui32NumHostClassDrivers);
 	USBHCDPowerConfigInit(0, USBHCD_VBUS_AUTO_HIGH | USBHCD_VBUS_FILTER);
 	USBHCDInit(0, MEM_POOL, MEM_POOL_SIZE);
 	uvc_init(10000000, uvc_start_cb, uvc_data_cb, uvc_end_cb);
-    //Initialize GPS stuff
+
+	//Initialize GPS stuff
     //initGPS();
 	//ROM_IntEnable(INT_UART6);
 	//ROM_UARTIntEnable(UART6_BASE, UART_INT_RX);
-
-    //Delay for GPS to get triggered
-  //  ROM_SysCtlDelay(400000000);
 
     //Initialize WiFi and corresponding debug UART
     initWiFiAndSysUART();
     initWiFiEndpoint();
     ROM_IntMasterEnable();
-    wlan_connect(WLAN_SEC_WPA2, "AndroidAP", ustrlen("AndroidAP"),NULL, "password", ustrlen("password"));
+    wlan_connect(WLAN_SEC_UNSEC, "MAAV2", ustrlen("MAAV2"),NULL, NULL, 0);
     while(!g_ui32CC3000DHCP)
     {
     	if(msp430Trigger)
     	{
-    		wlan_connect(WLAN_SEC_WPA2, "AndroidAP", ustrlen("AndroidAP"),NULL, "password", ustrlen("password"));
+    		wlan_connect(WLAN_SEC_UNSEC, "MAAV2", ustrlen("MAAV2"),NULL, NULL, 0);
     		msp430Trigger = 0;
     	}
 
     }
-    g_ui32Socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-    WIFI_sendUSBData("Hello", 5);
 
-    //Initialize SD Card Writer
-    //TODO
-    //SysCtlClockSet(g_ui32SysClock);
-   // f_mount(&sdVolume, "", 0);
-    //f_open(&logfile, "GPS.txt", FA_WRITE | FA_OPEN_ALWAYS);
-   // f_lseek(&logfile, logfile.fsize);
-   // f_write(&logfile, "Parachutes\n", 11, &bw);
-   // f_close(&logfile);
     while(1)
     {
-    	//while(1);
-    	//Sleep mode, broken by K Interrupt
-    	//msp430Trigger = readTrigger();
-    	//while(!msp430Trigger)
-    	//{
-    	//	ROM_SysCtlSleep();
-    	//}
 
-    	//Connect to WiFi AP
-    	//wlan_connect(WLAN_SEC_WPA2, "AndroidAP", ustrlen("AndroidAP"),NULL, "password", ustrlen("password"));
-    	//UARTprintf("Connection\n\r");
     	USBHCDMain();
 
             switch (CAMERA_STATE)
@@ -1034,37 +930,37 @@ main(void)
         	WIFI_sendUSBData(usb_buf, usb_buf_len);
         	usb_buf_len = 0;
         }
-
-    	//USBHCDPipeSchedule(cam_inst.stream.pipe, cam_stream_buf,
-    			//VIDEO_BUFFER_SIZE);
-
-    	//while(!g_ui32CC3000DHCP);
-    		//break;
-    	//else
-    		//UARTprintf("Connection\n\r");
-    	//Open socket
-    	//g_ui32Socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-
-    	//Loop while sending USB data
-    	//while(msp430Trigger)
-    	//{
-    		//USB_getData();
-    		//WIFI_sendUSBData();
-    		//WIFI_sendGPSData();
-    		//UARTprintf("Connection\n\r");
-    		//SD_saveData();
-    		//msp430Trigger = readTrigger();
-    	//}
-
-    	//Close socket
-    	//closesocket(g_ui32Socket);
-
-    	//Disconnect WiFi
-    	//wlan_disconnect();
-
-    	//Enable K Interrupts
-    	//ROM_GPIOIntEnable(GPIO_PORTK_BASE, GPIO_INT_PIN_4);
-    	//ROM_IntEnable(INT_GPIOK);
     }
 
 }
+
+/*int main(void)
+{
+	int k4;
+	SysCtlLDOSleepSet(SYSCTL_LDO_1_15V);
+	SysCtlSleepPowerSet(SYSCTL_SRAM_STANDBY);
+	ROM_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);
+	ROM_GPIODirModeSet(GPIO_PORTB_BASE, GPIO_PIN_5, GPIO_DIR_MODE_OUT);
+	MAP_GPIOPadConfigSet(GPIO_PORTB_BASE, GPIO_PIN_5,
+								 GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD);
+	initTrigger();
+	//GPIOPinWrite(GPIO_PORTB_BASE, GPIO_PIN_5, 0x00 );
+	while(1){
+	if(!msp430Trigger)
+	{
+			GPIOPinWrite(GPIO_PORTB_BASE, GPIO_PIN_5, 0x00 );
+			ROM_SysCtlDelay(1000000);
+			GPIOPinWrite(GPIO_PORTB_BASE, GPIO_PIN_5, 0x20 );
+			ROM_SysCtlDelay(1000000);
+
+		ROM_SysCtlSleep();
+	}
+
+		GPIOPinWrite(GPIO_PORTB_BASE, GPIO_PIN_5, 0x20 );
+		ROM_SysCtlDelay(500000);
+		GPIOPinWrite(GPIO_PORTB_BASE, GPIO_PIN_5, 0x00 );
+		ROM_SysCtlDelay(500000);
+	//msp430Trigger = GPIOPinRead(GPIO_PORTK_BASE, GPIO_PIN_4);
+
+}
+}*/

@@ -178,16 +178,15 @@
 								<option id="com.ti.ccstudio.buildDefinitions.TMS470_5.1.compilerID.DIAG_WRAP.1175290006" name="Wrap diagnostic messages (--diag_wrap)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_5.1.compilerID.DIAG_WRAP" value="com.ti.ccstudio.buildDefinitions.TMS470_5.1.compilerID.DIAG_WRAP.off" valueType="enumerated"/>
 								<option id="com.ti.ccstudio.buildDefinitions.TMS470_5.1.compilerID.INCLUDE_PATH.274811589" name="Add dir to #include search path (--include_path, -I)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_5.1.compilerID.INCLUDE_PATH" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${CG_TOOL_ROOT}/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${SW_ROOT}/examples/boards/ek-tm4c1294xl-boost-cc3000&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${SW_ROOT}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${SW_ROOT}/cc3000&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${SW_ROOT}/cc3000/drivers/ek-tm4c129&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${SW_ROOT}/cc3000/src/host_driver/core_driver&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${SW_ROOT}/cc3000/src/host_driver/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${SW_ROOT}/cc3000/src/host_driver&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${SW_ROOT}/cc3000/src&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${SW_ROOT}/cc3000/src/spi&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${SW_ROOT}/cc3000/src/uart&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/cc3000/src/spi}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/cc3000/src/uart}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/cc3000/src/host_driver/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/cc3000/src/host_driver/core_driver}&quot;"/>
+									<listOptionValue builtIn="false" value="${workspace_loc:/cc3000_basic_wifi_application}"/>
+									<listOptionValue builtIn="false" value="${workspace_loc:/cc3000_basic_wifi_application/cc3000}"/>
+									<listOptionValue builtIn="false" value="${workspace_loc:\cc3000_basic_wifi_application\cc3000\drivers\ek-tm4c129}"/>
+									<listOptionValue builtIn="false" value="${workspace_loc:\cc3000_basic_wifi_application\ff11a}"/>
+									<listOptionValue builtIn="false" value="${workspace_loc:\cc3000_basic_wifi_application\usblib}"/>
 								</option>
 								<option id="com.ti.ccstudio.buildDefinitions.TMS470_5.1.compilerID.LITTLE_ENDIAN.1309851351" name="Little endian code [See 'General' page to edit] (--little_endian, -me)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_5.1.compilerID.LITTLE_ENDIAN" value="true" valueType="boolean"/>
 								<option id="com.ti.ccstudio.buildDefinitions.TMS470_5.1.compilerID.GEN_FUNC_SUBSECTIONS.1423022453" name="Place each function in a separate subsection (--gen_func_subsections, -ms)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_5.1.compilerID.GEN_FUNC_SUBSECTIONS" value="com.ti.ccstudio.buildDefinitions.TMS470_5.1.compilerID.GEN_FUNC_SUBSECTIONS.on" valueType="enumerated"/>

@@ -62,6 +62,12 @@
 #define UVC_VS_PROBE_CONTROL_GET_CUR 0x81
 #define UVC_VS_COMMIT_CONTROL_SET_CUR 0x01
 
+#define USB_FID_NOT_STARTED 0x00
+#define USB_FID_STARTED 0x01
+#define USB_FID_MASK 0x01
+#define USB_EOF_LAST_FRAME 0x02
+#define USB_EOF_MASK 0x02
+
 struct uvc_iad
 {
 	uint8_t bLength;
@@ -496,23 +502,27 @@ static void uvc_pipe_cb(uint32_t pipe, uint32_t event)
 
 void uvc_parse_received_packet(uint8_t *buf, size_t len)
 {
-	static uint8_t fid = 2;
+	static uint8_t previous_fid = USB_FID_NOT_STARTED;
+	uint8_t current_fid;
+	uint8_t eof_field;
 
 	if (cam_inst.stream_format == UVC_VS_FORMAT_UNCOMPRESSED ||
 		cam_inst.stream_format == UVC_VS_FORMAT_MJPEG)
 	{
-		if (fid != buf[1] & 0x01)
+		current_fid = buf[1] & USB_FID_MASK;
+		if ((previous_fid == USB_FID_NOT_STARTED) && (current_fid == USB_FID_STARTED))
 		{
 			cam_inst.start_cb();
-			fid = buf[1] & 0x01;
 		}
 
 		cam_inst.data_cb(buf + buf[0], len - buf[0]);
 
-		if (buf[1] & 0x02)
+		//eof_field = buf[1] & USB_EOF_MASK;
+		if ((previous_fid == USB_FID_STARTED) && (current_fid == USB_FID_NOT_STARTED))
 		{
 			cam_inst.end_cb();
 		}
+		previous_fid = current_fid;
 	}
 }
 

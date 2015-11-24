@@ -1093,7 +1093,7 @@ simple_link_send(long sd, const void *buf, long len, long flags,
         SimpleLinkWaitEvent(HCI_EVNT_SENDTO, &tSocketSendEvent);
     else
         SimpleLinkWaitEvent(HCI_EVNT_SEND, &tSocketSendEvent);
-    ROM_SysCtlDelay(10000000);
+    //ROM_SysCtlDelay(10000000);
 
     return  (len);
 }
