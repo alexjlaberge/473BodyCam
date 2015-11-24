@@ -3,5 +3,8 @@
 *.pp
 *.mk
 **/Debug/*
+**/Release/*
 **/.settings/*
 **/.launches/*
+*.out
+*.bin
