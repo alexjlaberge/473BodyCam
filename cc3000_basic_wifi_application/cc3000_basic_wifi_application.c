@@ -72,6 +72,9 @@
 #define WIFI_IMG_START "yo new image"
 #define WIFI_IMG_END "kthxbye"
 
+#define WIFI_SSID "dd-wrt"
+#define WIFI_PASS "roar2015"
+
 int i;
 volatile int gpsFound;
 volatile char GPS[100];
@@ -876,12 +879,12 @@ main(void)
     initWiFiAndSysUART();
     initWiFiEndpoint();
     ROM_IntMasterEnable();
-    wlan_connect(WLAN_SEC_UNSEC, "MAAV2", ustrlen("MAAV2"),NULL, NULL, 0);
+    wlan_connect(WLAN_SEC_WPA2, WIFI_SSID, ustrlen(WIFI_SSID), NULL, WIFI_PASS, ustrlen(WIFI_PASS));
     while(!g_ui32CC3000DHCP)
     {
     	if(msp430Trigger)
     	{
-    		wlan_connect(WLAN_SEC_UNSEC, "MAAV2", ustrlen("MAAV2"),NULL, NULL, 0);
+    		wlan_connect(WLAN_SEC_WPA2, WIFI_SSID, ustrlen(WIFI_SSID), NULL, WIFI_PASS, ustrlen(WIFI_PASS));
     		msp430Trigger = 0;
     	}
 
