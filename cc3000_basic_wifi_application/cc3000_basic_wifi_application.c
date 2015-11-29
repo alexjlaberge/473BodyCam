@@ -72,8 +72,8 @@
 #define WIFI_IMG_START "yo new image"
 #define WIFI_IMG_END "kthxbye"
 
-#define WIFI_SSID "dd-wrt"
-#define WIFI_PASS "roar2015"
+#define WIFI_SSID "grandon"
+#define WIFI_PASS "ArchdaleStreetSocialClub"
 
 int i;
 volatile int gpsFound;
@@ -598,7 +598,7 @@ int
 WIFI_sendUSBData(const uint8_t * buf, size_t size)
 {
 	int a;
-	a = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+	a = socket(AF_INET, SOCK_DGRAM, 0);
         sendto(a, buf, size, 0,
                             &g_tSocketAddr,sizeof(sockaddr));
     closesocket(a);
@@ -761,13 +761,13 @@ int readTrigger()
 
 initWiFiEndpoint()
 {
-	uint8_t ui32Port = 80;
+	uint32_t ui32Port = 80;
 	uint8_t ui8IPBlock1,ui8IPBlock2,ui8IPBlock3,ui8IPBlock4;
 
 	//
 	// Extract IP Address.
 	//
-	DotDecimalDecoder("10.0.1.17",&ui8IPBlock1,&ui8IPBlock2,&ui8IPBlock3,
+	DotDecimalDecoder("192.168.0.125",&ui8IPBlock1,&ui8IPBlock2,&ui8IPBlock3,
 									&ui8IPBlock4);
 
 	//
@@ -778,7 +778,7 @@ initWiFiEndpoint()
 	//
 	// The destination port.
 	//
-	ui32Port = 80;
+	ui32Port = 8888;
 	g_tSocketAddr.sa_data[0] = (ui32Port & 0xFF00) >> 8;
 	g_tSocketAddr.sa_data[1] = (ui32Port & 0x00FF) >> 0;
 
@@ -835,6 +835,7 @@ void uvc_end_cb(void)
 
 int
 main(void)
+
 {
     g_ui32CC3000DHCP = 0;
     g_ui32Socket = SENTINEL_EMPTY;
