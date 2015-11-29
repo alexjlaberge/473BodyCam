@@ -1,0 +1,18 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/alex/School/webcam.cpp
+opencv2/opencv.hpp
+-
+opencv2/highgui/highgui.hpp
+-
+iostream
+-
+boost/asio.hpp
+-
+
