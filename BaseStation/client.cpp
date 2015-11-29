@@ -14,9 +14,7 @@
 using namespace cv;
 using namespace std;
 
-char buff[20000];
 vector<char> data;
-int totallen;
 
 #define MAXBUF 1024*1024
 
@@ -27,7 +25,6 @@ void rec( int sd ) {
     struct sockaddr_in remote;
 
     len = sizeof(remote);
-	totallen = 0;
 
     while (1) {
 	    char bufin [256] = {0};  
@@ -36,28 +33,29 @@ void rec( int sd ) {
 	    printf("%s", bufin);
 	    if(!strcmp(bufin, "yo new image\n"))
 	    {
-		    printf("starting\n");
+		    printf("startinggggg\n");
 		
             //FILL THE BUFFER
             while(strncmp(bufin, "kthxbai\n", 8) != 0)
 		    {
                 char bufin [256] = {0};			
                 n=recvfrom(sd,bufin,MAXBUF,0,(struct sockaddr *)&remote,(unsigned int*)&len);
-			    totallen += n;
-                printf("%s", bufin);
-                printf("%d\n", totallen);
-                //char bufin [256] = {0};
-                printf("%s", bufin);
+                for(int i = 0; i < n; i++)
+                {
+                    data.push_back(*(bufin+i));
+                    printf("%c\n", *(bufin+i));
+                }
+                //printf("%s", bufin);
 		    }
-
-            //Copy data over to the vector TODO
             
             //Decode vector into frame
-            frame = imdecode(Mat(data), 1);
-            totallen = 0;
+            //frame = imdecode(Mat(data), 1);
             
             //Show the frame
-            imshow("Police Video", frame);
+            //imshow("Police Video", frame);
+            
+            //Clear the data vector
+            data.clear();
 	}      
     }
     
@@ -95,4 +93,3 @@ int main() {
     return(0);
 
 }
-
