@@ -72,8 +72,8 @@
 #define WIFI_IMG_START "yo new image"
 #define WIFI_IMG_END "kthxbye"
 
-#define WIFI_SSID "grandon"
-#define WIFI_PASS "ArchdaleStreetSocialClub"
+#define WIFI_SSID "dd-wrt"
+#define WIFI_PASS "roar2015"
 
 int i;
 volatile int gpsFound;
@@ -82,6 +82,7 @@ volatile char USB[256];
 volatile int GPSSize;
 
 volatile int msp430Trigger;
+int offset;
 
 FATFS sdVolume;			// FatFs work area needed for each volume
 FIL logfile;			// File object needed for each open file
@@ -767,7 +768,7 @@ initWiFiEndpoint()
 	//
 	// Extract IP Address.
 	//
-	DotDecimalDecoder("192.168.0.125",&ui8IPBlock1,&ui8IPBlock2,&ui8IPBlock3,
+	DotDecimalDecoder("192.168.10.122",&ui8IPBlock1,&ui8IPBlock2,&ui8IPBlock3,
 									&ui8IPBlock4);
 
 	//
@@ -805,10 +806,12 @@ void initTrigger()
 	ROM_SysCtlPeripheralSleepEnable(SYSCTL_PERIPH_GPIOK);
 }
 
+volatile uint32_t pkt_offset = 0;
 volatile uint8_t usb_starting = 0;
 void uvc_start_cb(void)
 {
 	usb_starting = 1;
+	pkt_offset = 0;
 }
 
 #define USB_BUF_SIZE 256
@@ -816,12 +819,20 @@ volatile uint8_t usb_buf[USB_BUF_SIZE];
 volatile size_t usb_buf_len = 0;
 void uvc_data_cb(const uint8_t *buf, size_t len)
 {
+	uint32_t *pkt_length;
+
+	pkt_length = (uint32_t *) (usb_buf + 4);
+
+	*((uint32_t *) usb_buf + 0) = pkt_offset;
+	pkt_offset += (uint32_t) len;
+	*pkt_length = (uint32_t) len;
+
 	if (len > 0 && usb_buf_len == 0)
 	{
 		size_t i;
-		for (i = 0; i < len && i < USB_BUF_SIZE; i++)
+		for (i = 8; i < len && i < USB_BUF_SIZE; i++)
 		{
-			usb_buf[i] = buf[i];
+			usb_buf[i] = buf[i - 8];
 		}
 		usb_buf_len = i;
 	}
@@ -924,6 +935,7 @@ main(void)
 
 		if (usb_starting)
 		{
+			offset = 0;
 			char *msg = WIFI_IMG_START;
 			WIFI_sendUSBData((const uint8_t *) msg, strlen(WIFI_IMG_START));
 			usb_starting = 0;

@@ -165,6 +165,8 @@ void uvc_parse_received_packet_mjpeg(uint8_t *buf, uint32_t len);
 /**
  * @brief Called by usblib during device enumeration
  */
+
+
 static void * uvc_open(tUSBHostDevice *dev);
 
 /**
@@ -1483,6 +1485,7 @@ uint32_t uvc_set_iface(void)
 
 size_t uvc_parse_uncomp_format_desc(uint8_t *buf, size_t max_len)
 {
+	uint32_t *alec = (uint32_t *) (((size_t) buf) + 5);
 	uint8_t len = buf[0];
 	uint8_t type = buf[1];
 	uint8_t subtype = buf[2];
@@ -1510,6 +1513,11 @@ size_t uvc_parse_uncomp_format_desc(uint8_t *buf, size_t max_len)
 		{
 			break;
 		}
+	}
+
+	if (*alec == 0)
+	{
+		uvc_parsing_fault(*alec);
 	}
 
 	return i;
