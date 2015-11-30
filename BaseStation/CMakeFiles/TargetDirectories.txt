@@ -1,1 +1,0 @@
-/home/alex/473BodyCam/BaseStation/CMakeFiles/client.dir
