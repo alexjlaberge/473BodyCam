@@ -807,10 +807,18 @@ void initTrigger()
 }
 
 volatile uint32_t pkt_offset = 0;
-volatile uint8_t usb_starting = 0;
+volatile uint8_t pkt_id = 0;
 void uvc_start_cb(void)
 {
-	usb_starting = 1;
+	if(pkt_id == 255)
+	{
+		pkt_id = 0;
+	}
+	else
+	{
+		pkt_id++;
+	}
+	//usb_starting = 1;
 	pkt_offset = 0;
 }
 
@@ -819,29 +827,25 @@ volatile uint8_t usb_buf[USB_BUF_SIZE];
 volatile size_t usb_buf_len = 0;
 void uvc_data_cb(const uint8_t *buf, size_t len)
 {
-	uint32_t *pkt_length;
-
-	pkt_length = (uint32_t *) (usb_buf + 4);
-
-	*((uint32_t *) usb_buf + 0) = pkt_offset;
+	*((uint16_t *) (usb_buf + 0)) = (uint16_t) len;
+	*((uint8_t*) usb_buf + 2) = pkt_id;
+	*((uint32_t *) (usb_buf + 3)) = pkt_offset;
 	pkt_offset += (uint32_t) len;
-	*pkt_length = (uint32_t) len;
 
 	if (len > 0 && usb_buf_len == 0)
 	{
 		size_t i;
-		for (i = 8; i < len && i < USB_BUF_SIZE; i++)
+		for (i = 7; i < (len + 7) && i < USB_BUF_SIZE; i++)
 		{
-			usb_buf[i] = buf[i - 8];
+			usb_buf[i] = buf[i - 7];
 		}
 		usb_buf_len = i;
 	}
 }
 
-volatile uint8_t usb_ending = 0;
 void uvc_end_cb(void)
 {
-	usb_ending = 1;
+	//usb_ending = 1;
 }
 
 int
@@ -926,7 +930,7 @@ main(void)
                     break;
             }
 
-		if (usb_ending)
+		/*if (usb_ending)
 		{
 			char *msg = WIFI_IMG_END;
 			WIFI_sendUSBData((const uint8_t *) msg, strlen(WIFI_IMG_END));
@@ -939,7 +943,7 @@ main(void)
 			char *msg = WIFI_IMG_START;
 			WIFI_sendUSBData((const uint8_t *) msg, strlen(WIFI_IMG_START));
 			usb_starting = 0;
-		}
+		}*/
 
         if (usb_buf_len > 0)
         {
