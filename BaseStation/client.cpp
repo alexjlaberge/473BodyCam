@@ -9,62 +9,104 @@
 #include <arpa/inet.h>  /* IP address conversion stuff */
 #include <netdb.h>      /* gethostbyname */
 #include <string.h>
+#include <signal.h>
+#include <fstream>
 #include <opencv2/opencv.hpp>
 
 using namespace cv;
 using namespace std;
 
-vector<char> data;
+vector<char> data (38400);
+volatile static bool running = true;
 
 #define MAXBUF 1024*1024
 
+void handle_int(int sig)
+{
+    if (sig == SIGINT)
+    {
+        running = false;
+    }
+}
+
 void rec( int sd ) {
     int len,n;
-    char bufin[256];
     Mat frame;
     struct sockaddr_in remote;
+    ofstream dump{"data.raw"};
 
     len = sizeof(remote);
 
     while (1) {
-	    char bufin [256] = {0};  
-	    int size;    
-	    n=recvfrom(sd,bufin,MAXBUF,0,(struct sockaddr *)&remote,(unsigned int*)&len);
-	    printf("%s", bufin);
-	    if(!strcmp(bufin, "yo new image\n"))
+	    char bufin[256] = {0};  
+	    uint32_t len;
+	    uint32_t offset;
+	    
+	    n = recvfrom(sd,bufin,MAXBUF,0,(struct sockaddr *)&remote,(unsigned int*)&len);
+	    dump.write(bufin, n);
+	    //printf("%s\n", bufin);
+	    
+	    if (0 == strcmp(bufin, "kthxbye"))
 	    {
-		    printf("startinggggg\n");
-		
-            //FILL THE BUFFER
-            while(strncmp(bufin, "kthxbai\n", 8) != 0)
-		    {
-                char bufin [256] = {0};			
-                n=recvfrom(sd,bufin,MAXBUF,0,(struct sockaddr *)&remote,(unsigned int*)&len);
-                for(int i = 0; i < n; i++)
-                {
-                    data.push_back(*(bufin+i));
-                    printf("%c\n", *(bufin+i));
-                }
-                //printf("%s", bufin);
-		    }
+	        std::cout << "ending with " << data.size() << std::endl;
+	        while (data.size() < 38400)
+	        {
+	            data.push_back(0);
+	        }
+	        while (data.size() > 38400)
+	        {
+	            data.pop_back();
+	        }
+	        frame = Mat(Size(160, 120), CV_8UC2, data.data());
+	        //cvtColor(frame, frame, CV_YCbCr2RGB);
+	        cvtColor(frame, frame, COLOR_YUV2BGR_YUY2);
+	        //cvtColor(frame, frame, COLOR_YUV2BGR_YUYV);
+	        //cvtColor(frame, frame, COLOR_YUV2BGR_UYVY);
+	        //cvtColor(frame, frame, COLOR_YUV2BGR_YVYU);
+	        //cvtColor(frame, frame, COLOR_YUV2BGR_VYUY);
+	        imshow("Police Video", frame);
+	        waitKey(20);
+	        //data.clear();
+	        
+	        if (running == false)
+	        {
+	            break;
+	        }
+	        
+	        continue;
+	    }
+
+        if (0 == strcmp(bufin, "yo new image"))
+        {
+            std::cout << "starting" << std::endl;
+            //data.clear();
+            continue;
+        }
+        
+        //for (size_t i = 0; i < n; i++)
+        //{
+            //Get offset
+            offset = *((uint32_t *) bufin);
+            len = *((uint32_t *) (bufin + 4));
             
-            //Decode vector into frame
-            //frame = imdecode(Mat(data), 1);
+            //cout << offset << endl;
+            //cout << len << endl;
             
-            //Show the frame
-            //imshow("Police Video", frame);
-            
-            //Clear the data vector
-            data.clear();
-	}      
-    }
-    
+            //data.push_back(bufin[i]);
+            for(int i = 8; i < n; i += 2)
+            {
+                data[offset + i - 8] = bufin[i];
+            }
+        //}
+	}
 }
 
 int main() {
     int ld;
     struct sockaddr_in skaddr;
     int length;
+    
+    signal(SIGINT, handle_int);
 
     if ((ld = socket( AF_INET, SOCK_DGRAM, 0 )) < 0) {
         printf("Problem creating socket\n");

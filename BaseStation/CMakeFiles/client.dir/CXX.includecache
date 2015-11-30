@@ -6,7 +6,7 @@
 
 #IncludeRegexTransform: 
 
-/home/alex/BaseStation/client.cpp
+/home/alex/473BodyCam/BaseStation/client.cpp
 stdio.h
 -
 stdlib.h
@@ -24,6 +24,10 @@ arpa/inet.h
 netdb.h
 -
 string.h
+-
+signal.h
+-
+fstream
 -
 opencv2/opencv.hpp
 -

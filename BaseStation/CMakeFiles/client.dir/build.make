@@ -38,10 +38,10 @@ EQUALS = =
 CMAKE_EDIT_COMMAND = /usr/bin/ccmake
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/alex/BaseStation
+CMAKE_SOURCE_DIR = /home/alex/473BodyCam/BaseStation
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/alex/BaseStation
+CMAKE_BINARY_DIR = /home/alex/473BodyCam/BaseStation
 
 # Include any dependencies generated for this target.
 include CMakeFiles/client.dir/depend.make
@@ -54,17 +54,17 @@ include CMakeFiles/client.dir/flags.make
 
 CMakeFiles/client.dir/client.cpp.o: CMakeFiles/client.dir/flags.make
 CMakeFiles/client.dir/client.cpp.o: client.cpp
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/alex/BaseStation/CMakeFiles $(CMAKE_PROGRESS_1)
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/alex/473BodyCam/BaseStation/CMakeFiles $(CMAKE_PROGRESS_1)
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Building CXX object CMakeFiles/client.dir/client.cpp.o"
-	/usr/bin/c++   $(CXX_DEFINES) $(CXX_FLAGS) -o CMakeFiles/client.dir/client.cpp.o -c /home/alex/BaseStation/client.cpp
+	/usr/bin/c++   $(CXX_DEFINES) $(CXX_FLAGS) -o CMakeFiles/client.dir/client.cpp.o -c /home/alex/473BodyCam/BaseStation/client.cpp
 
 CMakeFiles/client.dir/client.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/client.dir/client.cpp.i"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -E /home/alex/BaseStation/client.cpp > CMakeFiles/client.dir/client.cpp.i
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -E /home/alex/473BodyCam/BaseStation/client.cpp > CMakeFiles/client.dir/client.cpp.i
 
 CMakeFiles/client.dir/client.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/client.dir/client.cpp.s"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -S /home/alex/BaseStation/client.cpp -o CMakeFiles/client.dir/client.cpp.s
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -S /home/alex/473BodyCam/BaseStation/client.cpp -o CMakeFiles/client.dir/client.cpp.s
 
 CMakeFiles/client.dir/client.cpp.o.requires:
 .PHONY : CMakeFiles/client.dir/client.cpp.o.requires
@@ -84,35 +84,36 @@ client_EXTERNAL_OBJECTS =
 
 client: CMakeFiles/client.dir/client.cpp.o
 client: CMakeFiles/client.dir/build.make
-client: /usr/local/lib/libopencv_videostab.so.3.0.0
-client: /usr/local/lib/libopencv_videoio.so.3.0.0
-client: /usr/local/lib/libopencv_video.so.3.0.0
-client: /usr/local/lib/libopencv_superres.so.3.0.0
-client: /usr/local/lib/libopencv_stitching.so.3.0.0
-client: /usr/local/lib/libopencv_shape.so.3.0.0
-client: /usr/local/lib/libopencv_photo.so.3.0.0
-client: /usr/local/lib/libopencv_objdetect.so.3.0.0
-client: /usr/local/lib/libopencv_ml.so.3.0.0
-client: /usr/local/lib/libopencv_imgproc.so.3.0.0
-client: /usr/local/lib/libopencv_imgcodecs.so.3.0.0
-client: /usr/local/lib/libopencv_highgui.so.3.0.0
-client: /usr/local/lib/libopencv_hal.a
-client: /usr/local/lib/libopencv_flann.so.3.0.0
-client: /usr/local/lib/libopencv_features2d.so.3.0.0
-client: /usr/local/lib/libopencv_core.so.3.0.0
-client: /usr/local/lib/libopencv_calib3d.so.3.0.0
+client: /usr/lib/x86_64-linux-gnu/libopencv_videostab.so.2.4.8
+client: /usr/lib/x86_64-linux-gnu/libopencv_video.so.2.4.8
+client: /usr/lib/x86_64-linux-gnu/libopencv_ts.so.2.4.8
+client: /usr/lib/x86_64-linux-gnu/libopencv_superres.so.2.4.8
+client: /usr/lib/x86_64-linux-gnu/libopencv_stitching.so.2.4.8
+client: /usr/lib/x86_64-linux-gnu/libopencv_photo.so.2.4.8
+client: /usr/lib/x86_64-linux-gnu/libopencv_ocl.so.2.4.8
+client: /usr/lib/x86_64-linux-gnu/libopencv_objdetect.so.2.4.8
+client: /usr/lib/x86_64-linux-gnu/libopencv_ml.so.2.4.8
+client: /usr/lib/x86_64-linux-gnu/libopencv_legacy.so.2.4.8
+client: /usr/lib/x86_64-linux-gnu/libopencv_imgproc.so.2.4.8
+client: /usr/lib/x86_64-linux-gnu/libopencv_highgui.so.2.4.8
+client: /usr/lib/x86_64-linux-gnu/libopencv_gpu.so.2.4.8
+client: /usr/lib/x86_64-linux-gnu/libopencv_flann.so.2.4.8
+client: /usr/lib/x86_64-linux-gnu/libopencv_features2d.so.2.4.8
+client: /usr/lib/x86_64-linux-gnu/libopencv_core.so.2.4.8
+client: /usr/lib/x86_64-linux-gnu/libopencv_contrib.so.2.4.8
+client: /usr/lib/x86_64-linux-gnu/libopencv_calib3d.so.2.4.8
 client: /usr/lib/x86_64-linux-gnu/libboost_system.a
-client: /usr/local/lib/libopencv_features2d.so.3.0.0
-client: /usr/local/lib/libopencv_ml.so.3.0.0
-client: /usr/local/lib/libopencv_highgui.so.3.0.0
-client: /usr/local/lib/libopencv_videoio.so.3.0.0
-client: /usr/local/lib/libopencv_imgcodecs.so.3.0.0
-client: /usr/local/lib/libopencv_flann.so.3.0.0
-client: /usr/local/lib/libopencv_video.so.3.0.0
-client: /usr/local/lib/libopencv_imgproc.so.3.0.0
-client: /usr/local/lib/libopencv_core.so.3.0.0
-client: /usr/local/lib/libopencv_hal.a
-client: /usr/local/share/OpenCV/3rdparty/lib/libippicv.a
+client: /usr/lib/x86_64-linux-gnu/libopencv_photo.so.2.4.8
+client: /usr/lib/x86_64-linux-gnu/libopencv_legacy.so.2.4.8
+client: /usr/lib/x86_64-linux-gnu/libopencv_video.so.2.4.8
+client: /usr/lib/x86_64-linux-gnu/libopencv_objdetect.so.2.4.8
+client: /usr/lib/x86_64-linux-gnu/libopencv_ml.so.2.4.8
+client: /usr/lib/x86_64-linux-gnu/libopencv_calib3d.so.2.4.8
+client: /usr/lib/x86_64-linux-gnu/libopencv_features2d.so.2.4.8
+client: /usr/lib/x86_64-linux-gnu/libopencv_highgui.so.2.4.8
+client: /usr/lib/x86_64-linux-gnu/libopencv_imgproc.so.2.4.8
+client: /usr/lib/x86_64-linux-gnu/libopencv_flann.so.2.4.8
+client: /usr/lib/x86_64-linux-gnu/libopencv_core.so.2.4.8
 client: CMakeFiles/client.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --red --bold "Linking CXX executable client"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/client.dir/link.txt --verbose=$(VERBOSE)
@@ -129,6 +130,6 @@ CMakeFiles/client.dir/clean:
 .PHONY : CMakeFiles/client.dir/clean
 
 CMakeFiles/client.dir/depend:
-	cd /home/alex/BaseStation && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/alex/BaseStation /home/alex/BaseStation /home/alex/BaseStation /home/alex/BaseStation /home/alex/BaseStation/CMakeFiles/client.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/alex/473BodyCam/BaseStation && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/alex/473BodyCam/BaseStation /home/alex/473BodyCam/BaseStation /home/alex/473BodyCam/BaseStation /home/alex/473BodyCam/BaseStation /home/alex/473BodyCam/BaseStation/CMakeFiles/client.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/client.dir/depend
 
