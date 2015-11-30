@@ -491,15 +491,15 @@ initWiFiAndSysUART(void)
 
     //DispatcherUARTConfigure(g_ui32SysClock);
 
-    ROM_SysCtlDelay(1000000);
+    //ROM_SysCtlDelay(1000000);
 
     //
     // Print version string.
     //
-    UARTprintf("\n\n\rCC3000 Basic Wifi Application: driver version "
-                "%d.%d.%d.%d \n\r",PLATFORM_VERSION, APPLICATION_VERSION,
-                SPI_VERSION_NUMBER, DRIVER_VERSION_NUMBER );
-    UARTprintf("Type 'help' for a list of commands\n");
+    //UARTprintf("\n\n\rCC3000 Basic Wifi Application: driver version "
+                //"%d.%d.%d.%d \n\r",PLATFORM_VERSION, APPLICATION_VERSION,
+                //SPI_VERSION_NUMBER, DRIVER_VERSION_NUMBER );
+    //UARTprintf("Type 'help' for a list of commands\n");
 
     //
     // Set flag to stop smart config if running.
@@ -585,7 +585,7 @@ DotDecimalDecoder(char *pcString, uint8_t *pui8Val1, uint8_t *pui8Val2,
 
 
 
-
+int sd;
 //*****************************************************************************
 //
 // Send Data to a destination port at a given IP Address.
