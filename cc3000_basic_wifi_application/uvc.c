@@ -573,7 +573,21 @@ void uvc_parse_received_packet_uncomp(uint8_t *buf, uint32_t len)
 
 void uvc_parse_received_packet_mjpeg(uint8_t *buf, uint32_t len)
 {
-	uvc_parsing_fault(0);
+	uint32_t i = 0;
+
+	for (i = 0; i < (len - 1); i++)
+	{
+		if (0xFF == buf[i] && 0xD8 == buf[i + 1])
+		{
+			cam_inst.start_cb();
+		}
+		else if (0xFF == buf[i] && 0xD9 == buf[i + 1])
+		{
+			cam_inst.end_cb();
+		}
+	}
+
+	cam_inst.data_cb(buf, len);
 }
 
 void uvc_main(void)
