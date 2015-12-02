@@ -45,6 +45,11 @@ void Packet::parse(uint8_t *buf, size_t len)
         throw ParseError("Length of packet is 0");
     }
 
+    if (length > (len - 8))
+    {
+        throw ParseError("Not enough packet to parse");
+    }
+
     data = vector<uint8_t>(length);
     for (i = 0; i < length; i++)
     {
@@ -84,6 +89,24 @@ const std::vector<std::uint8_t> & Packet::getData() const noexcept
 
 std::ostream & operator<<(std::ostream &stream, const PacketType t)
 {
-    stream << static_cast<uint8_t>(t);
+    switch (t)
+    {
+    case PacketType::NONE:
+        stream << "NONE";
+        break;
+    case PacketType::GPS:
+        stream << "GPS";
+        break;
+    case PacketType::MJPEG:
+        stream << "MJPEG";
+        break;
+    case PacketType::TIME:
+        stream << "TIME";
+        break;
+    case PacketType::UNCOMP:
+        stream << "UNCOMP";
+        break;
+    }
+
     return stream;
 }

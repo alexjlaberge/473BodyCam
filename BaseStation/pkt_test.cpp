@@ -8,6 +8,7 @@
 
 using bodycam::Packet;
 using bodycam::PacketType;
+using bodycam::ParseError;
 using std::uint8_t;
 using std::vector;
 
@@ -27,11 +28,22 @@ public:
         raw.push_back(10);
         raw.push_back(10);
 
+        bad.push_back(200);
+        bad.push_back(0);
+        bad.push_back(8);
+        bad.push_back(2);
+        bad.push_back(1);
+        bad.push_back(1);
+        bad.push_back(1);
+        bad.push_back(1);
+        bad.push_back(10);
+        bad.push_back(10);
+
         pkt = Packet(raw.data(), raw.size());
     }
 
     Packet pkt;
-    vector<uint8_t> raw;
+    vector<uint8_t> bad, raw;
 };
 
 BOOST_AUTO_TEST_CASE(testIDParsing)
@@ -62,4 +74,10 @@ BOOST_AUTO_TEST_CASE(testTypeParsing)
 {
     Fixture f;
     BOOST_CHECK(PacketType::MJPEG == f.pkt.getType());
+}
+
+BOOST_AUTO_TEST_CASE(testParseException)
+{
+    Fixture f;
+    BOOST_CHECK_THROW(Packet(f.bad.data(), f.bad.size()), ParseError);
 }
