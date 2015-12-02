@@ -33,4 +33,8 @@ void uvc_init(uint32_t target_bit_rate,
  */
 void uvc_main(void);
 
+int uvc_is_mjpeg(void);
+
+int uvc_is_uncomp(void);
+
 #endif /* UVC_H_ */

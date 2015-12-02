@@ -75,6 +75,9 @@
 #define WIFI_SSID "dd-wrt"
 #define WIFI_PASS "roar2015"
 
+#define WIFI_PKT_TYPE_MJPEG 2
+#define WIFI_PKT_TYPE_UNCOMP 4
+
 int i;
 volatile int gpsFound;
 volatile char GPS[100];
@@ -768,7 +771,7 @@ initWiFiEndpoint()
 	//
 	// Extract IP Address.
 	//
-	DotDecimalDecoder("192.168.10.122",&ui8IPBlock1,&ui8IPBlock2,&ui8IPBlock3,
+	DotDecimalDecoder("192.168.10.144",&ui8IPBlock1,&ui8IPBlock2,&ui8IPBlock3,
 									&ui8IPBlock4);
 
 	//
@@ -806,10 +809,20 @@ void initTrigger()
 	ROM_SysCtlPeripheralSleepEnable(SYSCTL_PERIPH_GPIOK);
 }
 
+volatile uint8_t pkt_type = 0;
 volatile uint32_t pkt_offset = 0;
 volatile uint8_t pkt_id = 0;
 void uvc_start_cb(void)
 {
+	if (uvc_is_mjpeg())
+	{
+		pkt_type = WIFI_PKT_TYPE_MJPEG;
+	}
+	else if (uvc_is_uncomp())
+	{
+		pkt_type = WIFI_PKT_TYPE_UNCOMP;
+	}
+
 	if(pkt_id == 255)
 	{
 		pkt_id = 0;
@@ -822,22 +835,26 @@ void uvc_start_cb(void)
 	pkt_offset = 0;
 }
 
-#define USB_BUF_SIZE 256
+#define USB_BUF_SIZE 512
+#define WIFI_PKT_HEADER_SIZE 8
 volatile uint8_t usb_buf[USB_BUF_SIZE];
 volatile size_t usb_buf_len = 0;
 void uvc_data_cb(const uint8_t *buf, size_t len)
 {
 	*((uint16_t *) (usb_buf + 0)) = (uint16_t) len;
 	*((uint8_t*) usb_buf + 2) = pkt_id;
-	*((uint32_t *) (usb_buf + 3)) = pkt_offset;
+	*((uint8_t*) usb_buf + 3) = pkt_type;
+	*((uint32_t *) (usb_buf + 4)) = pkt_offset;
 	pkt_offset += (uint32_t) len;
 
 	if (len > 0 && usb_buf_len == 0)
 	{
 		size_t i;
-		for (i = 7; i < (len + 7) && i < USB_BUF_SIZE; i++)
+		for (i = WIFI_PKT_HEADER_SIZE;
+			i < (len + WIFI_PKT_HEADER_SIZE) && i < USB_BUF_SIZE;
+			i++)
 		{
-			usb_buf[i] = buf[i - 7];
+			usb_buf[i] = buf[i - WIFI_PKT_HEADER_SIZE];
 		}
 		usb_buf_len = i;
 	}

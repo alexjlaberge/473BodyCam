@@ -1589,3 +1589,23 @@ void uvc_init(uint32_t target_bit_rate,
 	cam_inst.end_cb = uvc_frame_end_cb;
 	cam_inst.target_bit_rate = target_bit_rate;
 }
+
+int uvc_is_mjpeg(void)
+{
+	if (cam_inst.stream_format == UVC_VS_FORMAT_MJPEG)
+	{
+		return 1;
+	}
+
+	return 0;
+}
+
+int uvc_is_uncomp(void)
+{
+	if (cam_inst.stream_format == UVC_VS_FORMAT_UNCOMPRESSED)
+	{
+		return 1;
+	}
+
+	return 0;
+}
