@@ -343,6 +343,8 @@ size_t uvc_parse_h264_format_desc(uint8_t *buf, size_t max_len);
  */
 size_t uvc_parse_h264_frame_desc(uint8_t *buf, size_t max_len);
 
+size_t uvc_parse_color_matching_desc(uint8_t *buf, size_t max_len);
+
 /**
  * @brief An endless while to preserve state for debugging
  */
@@ -577,11 +579,11 @@ void uvc_parse_received_packet_mjpeg(uint8_t *buf, uint32_t len)
 
 	for (i = 0; i < (len - 1); i++)
 	{
-		if (0xFF == buf[i] && 0xD8 == buf[i + 1])
+		if (0xFF == buf[i + 1] && 0xD8 == buf[i])
 		{
 			cam_inst.start_cb();
 		}
-		else if (0xFF == buf[i] && 0xD9 == buf[i + 1])
+		else if (0xFF == buf[i + 1] && 0xD9 == buf[i])
 		{
 			cam_inst.end_cb();
 		}
@@ -1080,6 +1082,9 @@ size_t uvc_parse_cs_vs_input_header(uint8_t *buf, size_t max_len)
 				break;
 			case UVC_VS_FORMAT_UNCOMPRESSED:
 				len = uvc_parse_uncomp_format_desc(buf + i, max_len - i);
+				break;
+			case UVC_VS_COLORFORMAT:
+				len = uvc_parse_color_matching_desc(buf + i, max_len - i);
 				break;
 			default:
 				len = buf[i];
@@ -1608,4 +1613,31 @@ int uvc_is_uncomp(void)
 	}
 
 	return 0;
+}
+
+size_t uvc_parse_color_matching_desc(uint8_t *buf, size_t max_len)
+{
+	uint8_t len = buf[0];
+	uint8_t primaries = buf[3];
+	uint8_t transfer = buf[4];
+	uint8_t coeffs = buf[5];
+
+	/*
+	if (primaries != 1)
+	{
+		uvc_parsing_fault(1);
+	}
+
+	if (transfer != 1)
+	{
+		uvc_parsing_fault(4);
+	}
+
+	if (coeffs != 4)
+	{
+		uvc_parsing_fault(16);
+	}
+	*/
+
+	return len;
 }
