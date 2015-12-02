@@ -16,7 +16,7 @@ class Fixture
 public:
     Fixture()
     {
-        raw.push_back(10);
+        raw.push_back(2);
         raw.push_back(0);
         raw.push_back(8);
         raw.push_back(2);
@@ -43,13 +43,21 @@ BOOST_AUTO_TEST_CASE(testIDParsing)
 BOOST_AUTO_TEST_CASE(testLengthParsing)
 {
     Fixture f;
-    BOOST_CHECK_EQUAL(10, f.pkt.getLength());
+    BOOST_CHECK_EQUAL(f.raw.size() - 8, f.pkt.getLength());
 }
+
 BOOST_AUTO_TEST_CASE(testOffsetParsing)
 {
     Fixture f;
     BOOST_CHECK_EQUAL((1 << 24) | (1 << 16) | (1 << 8) | 1, f.pkt.getOffset());
 }
+
+BOOST_AUTO_TEST_CASE(testRawLength)
+{
+    Fixture f;
+    BOOST_CHECK_EQUAL(f.raw.size(), f.pkt.getRawLength());
+}
+
 BOOST_AUTO_TEST_CASE(testTypeParsing)
 {
     Fixture f;
