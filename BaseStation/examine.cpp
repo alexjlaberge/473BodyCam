@@ -5,31 +5,39 @@
 #include <array>
 #include <fstream>
 #include <iostream>
+#include <string>
+#include <vector>
 
 #include <opencv2/opencv.hpp>
 
 #include "common.hpp"
+#include "pkt.hpp"
 
+using bodycam::Packet;
+using bodycam::PacketType;
+using bodycam::ParseError;
 using cv::Mat;
 using cv::Size;
 using cv::cvtColor;
 using cv::imshow;
 using cv::waitKey;
 using std::array;
-using std::cerr;
+using std::cout;
 using std::dec;
 using std::endl;
 using std::hex;
 using std::ifstream;
+using std::string;
+using std::vector;
 
 static const char *net_img_start = NET_IMG_START;
 static const char *net_img_end = NET_IMG_END;
 
 int main(int argc, char **argv)
 {
-    if (argc != 2)
+    if (argc < 2)
     {
-        cerr << "Usage: " << argv[0] << " <raw_file>" << endl;
+        cout << "Usage: " << argv[0] << " <raw_file> [frame_id]" << endl;
         return 1;
     }
 
@@ -39,10 +47,12 @@ int main(int argc, char **argv)
     size_t file_size;
     size_t i{0};
     array<char, 160 * 120 * 2> raw;
+    vector<Packet> pkts;
+    vector<uint8_t> ids;
 
     if (stat(argv[1], &st) != 0)
     {
-        cerr << "Could not stat " << argv[1] << endl;
+        cout << "Could not stat " << argv[1] << endl;
         return 1;
     }
 
@@ -52,71 +62,116 @@ int main(int argc, char **argv)
 
     if (static_cast<size_t>(in.tellg()) != file_size)
     {
-        cerr << "Did not reach EOF" << endl;
-        cerr << "read " << in.tellg() << "/" << file_size << endl;
-        cerr << "file is good: " << static_cast<int>(in.good()) << endl;
+        cout << "Did not reach EOF" << endl;
+        cout << "read " << in.tellg() << "/" << file_size << endl;
+        cout << "file is good: " << static_cast<int>(in.good()) << endl;
         return 1;
     }
 
+    uint8_t id = 0;
     while (i < file_size)
     {
-        uint16_t len{0};
-        uint8_t id{0};
-        uint32_t offset{0};
+        Packet tmp;
 
-        cerr << "i: " << i << " ";
-
-        len = *reinterpret_cast<uint16_t *>(buf + i);
-        i += sizeof(uint16_t);
-
-        id = *reinterpret_cast<uint8_t *>(buf + i);
-        i += sizeof(uint8_t);
-
-        offset = *reinterpret_cast<uint32_t *>(buf + i);
-        i += sizeof(uint32_t);
-
-        cerr << "id: " << static_cast<int>(id) << " ";
-        cerr << "len: " << len << " ";
-        cerr << "offset: " << offset << endl;
-
-        if (id == 1)
+        try
         {
-            for (size_t j = 0; j < static_cast<size_t>(len); j++)
+            tmp.parse(reinterpret_cast<uint8_t*>(buf + i), file_size - i);
+        }
+        catch (const ParseError &e)
+        {
+            cout << "Caught a parsing error - \"" << e.getMessage() << "\"" <<
+                endl;
+            break;
+        }
+
+        if (id != tmp.getID())
+        {
+            id = tmp.getID();
+            cout << "id: " << static_cast<int>(tmp.getID()) << " ";
+            cout << "len: " << static_cast<int>(tmp.getLength()) << endl;
+        }
+        pkts.push_back(tmp);
+
+        i += tmp.getRawLength();
+    }
+
+    cout << "Parsed " << pkts.size() << " packets" << endl;
+
+    for (int k = 2; k < argc; k++)
+    {
+        ids.push_back(static_cast<uint8_t>(std::stoi(string{argv[k]})));
+    }
+
+    if (ids.size() == 0)
+    {
+        return 0;
+    }
+
+    cout << "examining IDs ";
+    for (const auto &id : ids)
+    {
+        cout << static_cast<int>(id) << " ";
+    }
+    cout << endl;
+
+    for (const auto &id : ids)
+    {
+        vector<uint8_t> raw;
+        PacketType type;
+
+        cout << "examining " << static_cast<int>(id) << endl;
+
+        for (const auto &pkt : pkts)
+        {
+            if (pkt.getID() == id)
             {
-                raw[offset + j] = buf[i + j];
+                size_t new_length = pkt.getOffset() +
+                    static_cast<size_t>(pkt.getLength());
+
+                type = pkt.getType();
+
+                if (new_length > raw.size())
+                {
+                    raw.resize(new_length, 0);
+                }
+
+                for (size_t k = 0; k < pkt.getLength(); k++)
+                {
+                    raw[pkt.getOffset() + k] = pkt.getData()[k];
+                }
             }
         }
 
-        i += static_cast<size_t>(len);
-    }
+        cout << "type: " << type << endl;
 
-    cerr << hex;
-    for (size_t j = 0; j < 128; j++)
-    {
-        if (j > 0 && (j % 4) == 0)
+        cout << hex;
+        for (size_t j = 0; j < 1024; j++)
         {
-            cerr << endl;
+            if (j > 0 && (j % 32) == 0)
+            {
+                cout << endl;
+            }
+            cout << (static_cast<unsigned int>(raw[j + 1024 * 20]) & 0xFF) << " ";
         }
-        cerr << (static_cast<unsigned int>(raw[j + 38268]) & 0xFF) << " ";
+        cout << endl;
+
+        Mat img{Size(160, 120), CV_8UC2, raw.data()};
+        Mat dst{Size(160, 120), CV_8UC3};
+
+        //cvtColor(img, dst, CV_YUV2GRAY_UYVY);
+        //cvtColor(img, dst, CV_YUV2GRAY_YUY2);
+        //cvtColor(img, dst, CV_YUV2BGR_UYVY);
+        //cvtColor(img, dst, CV_YUV2BGRA_UYVY);
+        cvtColor(img, dst, CV_YUV2BGR_YUY2);
+        //cvtColor(img, dst, CV_YUV2BGR_YVYU);
+        //cvtColor(img, dst, CV_YUV2BGRA_YUY2);
+        //cvtColor(img, dst, CV_YUV2BGRA_YVYU);
+        //cvtColor(img, dst, CV_YUV2GRAY_NV12);
+        //cvtColor(img, dst, CV_YUV2BGR_NV12);
+
+        imshow("Police Video", dst);
+        waitKey(0);
     }
-    cerr << endl;
-
-    Mat img{Size(160, 120), CV_8UC2, raw.data()};
-    Mat dst{Size(160, 120), CV_8UC3};
-
-    //cvtColor(img, dst, CV_YUV2GRAY_UYVY);
-    //cvtColor(img, dst, CV_YUV2GRAY_YUY2);
-    //cvtColor(img, dst, CV_YUV2BGR_UYVY);
-    //cvtColor(img, dst, CV_YUV2BGRA_UYVY);
-    cvtColor(img, dst, CV_YUV2BGR_YUY2);
-    //cvtColor(img, dst, CV_YUV2BGR_YVYU);
-    //cvtColor(img, dst, CV_YUV2BGRA_YUY2);
-    //cvtColor(img, dst, CV_YUV2BGRA_YVYU);
-    //cvtColor(img, dst, CV_YUV2GRAY_NV12);
-    //cvtColor(img, dst, CV_YUV2BGR_NV12);
-
-    imshow("Police Video", dst);
-    waitKey(0);
 
     return 0;
 }
