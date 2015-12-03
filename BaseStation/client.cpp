@@ -1,137 +1,192 @@
-/* UDP echo server program -- echo-server-udp.c */
-
-#include <stdio.h>      /* standard C i/o facilities */
-#include <stdlib.h>     /* needed for atoi() */
-#include <unistd.h>     /* defines STDIN_FILENO, system calls,etc */
-#include <sys/types.h>  /* system data type definitions */
-#include <sys/socket.h> /* socket specific definitions */
-#include <netinet/in.h> /* INET constants and stuff */
-#include <arpa/inet.h>  /* IP address conversion stuff */
-#include <netdb.h>      /* gethostbyname */
-#include <string.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <poll.h>
 #include <signal.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <unistd.h>
+
 #include <fstream>
+
 #include <opencv2/opencv.hpp>
 
-using namespace cv;
-using namespace std;
+#include "client.hpp"
+#include "pkt.hpp"
 
-vector<char> data (38400);
+#define RECV_BUF_SIZE 1024
+
+using bodycam::Client;
+using bodycam::Packet;
+using bodycam::ParseError;
+using cv::Mat;
+using std::lock_guard;
+using std::mutex;
+using std::runtime_error;
+using std::vector;
+
+vector<char> data(38400);
 volatile static bool running = true;
 
-#define MAXBUF 1024*1024
+void listener(Client *client);
+Mat assembleFrame(const vector<Packet> &pkts);
 
-void handle_int(int sig)
+void listener(Client *client)
 {
-    if (sig == SIGINT)
-    {
-        running = false;
-    }
-}
-
-void rec( int sd ) {
-    int len,n;
-    Mat frame;
-    struct sockaddr_in remote;
-    ofstream dump{"data.raw"};
-
-    len = sizeof(remote);
-
-    while (1) {
-	    char bufin[256] = {0};  
-	    uint32_t len;
-	    uint32_t offset;
-	    
-	    n = recvfrom(sd,bufin,MAXBUF,0,(struct sockaddr *)&remote,(unsigned int*)&len);
-	    dump.write(bufin, n);
-	    //printf("%s\n", bufin);
-	    
-	    if (0 == strcmp(bufin, "kthxbye"))
-	    {
-	        std::cout << "ending with " << data.size() << std::endl;
-	        while (data.size() < 38400)
-	        {
-	            data.push_back(0);
-	        }
-	        while (data.size() > 38400)
-	        {
-	            data.pop_back();
-	        }
-	        frame = Mat(Size(160, 120), CV_8UC2, data.data());
-	        //cvtColor(frame, frame, CV_YCbCr2RGB);
-	        cvtColor(frame, frame, COLOR_YUV2BGR_YUY2);
-	        //cvtColor(frame, frame, COLOR_YUV2BGR_YUYV);
-	        //cvtColor(frame, frame, COLOR_YUV2BGR_UYVY);
-	        //cvtColor(frame, frame, COLOR_YUV2BGR_YVYU);
-	        //cvtColor(frame, frame, COLOR_YUV2BGR_VYUY);
-	        imshow("Police Video", frame);
-	        waitKey(20);
-	        //data.clear();
-	        
-	        if (running == false)
-	        {
-	            break;
-	        }
-	        
-	        continue;
-	    }
-
-        if (0 == strcmp(bufin, "yo new image"))
-        {
-            std::cout << "starting" << std::endl;
-            //data.clear();
-            continue;
-        }
-        
-        //for (size_t i = 0; i < n; i++)
-        //{
-            //Get offset
-            offset = *((uint32_t *) bufin);
-            len = *((uint32_t *) (bufin + 4));
-            
-            //cout << offset << endl;
-            //cout << len << endl;
-            
-            //data.push_back(bufin[i]);
-            for(int i = 8; i < n; i += 2)
-            {
-                data[offset + i - 8] = bufin[i];
-            }
-        //}
-	}
-}
-
-int main() {
-    int ld;
+    int sd;
+    int err;
     struct sockaddr_in skaddr;
-    int length;
-    
-    signal(SIGINT, handle_int);
+    char buf[RECV_BUF_SIZE];  
+    vector<Packet> pkts;
+    vector<uint8_t> data;
+    struct pollfd pfd;
+    Mat frame;
 
-    if ((ld = socket( AF_INET, SOCK_DGRAM, 0 )) < 0) {
-        printf("Problem creating socket\n");
-        exit(1);
+    sd = socket(AF_INET, SOCK_DGRAM, 0);
+    if (sd < 0)
+    {
+        perror("Problem creating socket");
+        return;
     }
 
     skaddr.sin_family = AF_INET;
     skaddr.sin_addr.s_addr = htonl(INADDR_ANY);
     skaddr.sin_port = htons(8888);
 
-    if (bind(ld, (struct sockaddr *) &skaddr, sizeof(skaddr))<0) {
-        printf("Problem binding\n");
-        exit(0);
+    err = bind(sd, (struct sockaddr *) &skaddr, sizeof(skaddr));
+    if (err < 0)
+    {
+        perror("Problem binding");
+        return;
     }
-  
-    length = sizeof( skaddr );
-  
-    if (getsockname(ld, (struct sockaddr *) &skaddr, (unsigned int*)&length)<0) {
-        printf("Error getsockname\n");
-        exit(1);
+
+    pfd.fd = sd;
+    pfd.events = POLLIN;
+    while (running)
+    {
+        err = poll(&pfd, 1, 1000);
+        if (err == 0)
+        {
+            continue;
+        }
+
+        while (1)
+        {
+            err = recvfrom(sd, buf, RECV_BUF_SIZE, 0, nullptr, nullptr);
+            if (err == -1)
+            {
+                if (errno != EAGAIN && errno != EWOULDBLOCK)
+                {
+                    perror("recvfrom() failed");
+                    break;
+                }
+
+                size_t i{0};
+                while (i < data.size())
+                {
+                    Packet pkt;
+
+                    try
+                    {
+                        pkt.parse(data.data() + i, data.size() - i);
+                    }
+                    catch (const ParseError &e)
+                    {
+                        break;
+                    }
+
+                    if (pkt.getID() != pkts[0].getID())
+                    {
+                        client->displayImage(assembleFrame(pkts));
+                        pkts.clear();
+                    }
+
+                    pkts.push_back(pkt);
+                    i += pkt.getRawLength();
+                }
+
+                data.clear();
+                continue;
+            }
+
+            for (int i = 0; i < err; i++)
+            {
+                data.push_back(buf[i]);
+            }
+        }
     }
-  
-    printf("The server UDP port number is %d\n",ntohs(skaddr.sin_port));
+}
 
-    rec(ld);
-    return(0);
+int main(int argc, char **argv)
+{
+    QApplication app(argc, argv);
+    Client c;
 
+    QObject::connect(&app, SIGNAL(lastWindowClosed()), &c, SLOT(quit()));
+
+    c.show();
+
+    return app.exec();
+}
+
+Client::Client()
+{
+	QHBoxLayout *layout;
+    
+    layout = new QHBoxLayout();
+	video = new QLabel();
+	layout->addWidget(video);
+
+	connect(this, SIGNAL(gotNewImage()), this, SLOT(draw()));
+
+	setLayout(layout);
+
+    future = QtConcurrent::run(listener, this);
+}
+
+void Client::displayImage(const Mat &image)
+{
+    {
+        lock_guard<mutex> g(imLock);
+        im = image.clone();
+    }
+
+    emit gotNewImage();
+}
+
+void Client::draw()
+{
+    Mat tmp;
+
+    {
+        lock_guard<mutex> g(imLock);
+        cvtColor(im, tmp, CV_BGR2BGRA);
+    }
+
+    QImage buf(tmp.data, tmp.cols, tmp.rows, QImage::Format_ARGB32);
+
+    QPixmap pmap = QPixmap::fromImage(buf);
+
+    video->setPixmap(pmap);
+}
+
+void Client::quit()
+{
+	running = false;
+	future.waitForFinished();
+}
+
+Mat assembleFrame(const vector<Packet> &pkts)
+{
+    Mat frame;
+
+    /* TODO convert packets to frame */
+
+    //frame = Mat(Size(160, 120), CV_8UC2, data.data());
+    //cvtColor(frame, frame, COLOR_YUV2BGR_YUY2);
+
+    return frame;
 }

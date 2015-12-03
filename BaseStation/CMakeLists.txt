@@ -8,10 +8,19 @@ find_package(OpenCV REQUIRED)
 find_package(Boost COMPONENTS system unit_test_framework REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 
+find_package(Qt4 REQUIRED)
+set(CMAKE_AUTOMOC ON)
+
 add_library(pkt STATIC pkt.cpp)
 
 add_executable(client client.cpp)
-target_link_libraries(client ${OpenCV_LIBS} ${Boost_SYSTEM_LIBRARY})
+target_link_libraries(client
+    ${Boost_SYSTEM_LIBRARY}
+    ${OpenCV_LIBS}
+    Qt4::QtCore
+    Qt4::QtGui
+    pkt
+    )
 
 add_executable(examine examine.cpp)
 target_link_libraries(examine pkt ${OpenCV_LIBS})
