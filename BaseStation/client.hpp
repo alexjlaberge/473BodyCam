@@ -33,8 +33,6 @@ signals:
 	void gotNewImage();
 
 private:
-	bool running;
-
 	cv::Mat im;
 	std::mutex imLock;
 	QFuture<void> future;

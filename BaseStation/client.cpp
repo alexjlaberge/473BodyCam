@@ -23,6 +23,9 @@ using bodycam::Client;
 using bodycam::Packet;
 using bodycam::ParseError;
 using cv::Mat;
+using cv::Size;
+using std::cout;
+using std::endl;
 using std::lock_guard;
 using std::mutex;
 using std::runtime_error;
@@ -67,56 +70,50 @@ void listener(Client *client)
     pfd.events = POLLIN;
     while (running)
     {
+        size_t i{0};
+
         err = poll(&pfd, 1, 1000);
         if (err == 0)
         {
             continue;
         }
 
-        while (1)
+        err = recvfrom(sd, buf, RECV_BUF_SIZE, 0, nullptr, nullptr);
+        if (err == -1)
         {
-            err = recvfrom(sd, buf, RECV_BUF_SIZE, 0, nullptr, nullptr);
-            if (err == -1)
-            {
-                if (errno != EAGAIN && errno != EWOULDBLOCK)
-                {
-                    perror("recvfrom() failed");
-                    break;
-                }
-
-                size_t i{0};
-                while (i < data.size())
-                {
-                    Packet pkt;
-
-                    try
-                    {
-                        pkt.parse(data.data() + i, data.size() - i);
-                    }
-                    catch (const ParseError &e)
-                    {
-                        break;
-                    }
-
-                    if (pkt.getID() != pkts[0].getID())
-                    {
-                        client->displayImage(assembleFrame(pkts));
-                        pkts.clear();
-                    }
-
-                    pkts.push_back(pkt);
-                    i += pkt.getRawLength();
-                }
-
-                data.clear();
-                continue;
-            }
-
-            for (int i = 0; i < err; i++)
-            {
-                data.push_back(buf[i]);
-            }
+            perror("recvfrom() failed");
+            break;
         }
+
+        for (int i = 0; i < err; i++)
+        {
+            data.push_back(buf[i]);
+        }
+
+        while (i < data.size())
+        {
+            Packet pkt;
+
+            try
+            {
+                pkt.parse(data.data() + i, data.size() - i);
+            }
+            catch (const ParseError &e)
+            {
+                break;
+            }
+
+            if (pkt.getID() != pkts[0].getID())
+            {
+                client->displayImage(assembleFrame(pkts));
+                pkts.clear();
+            }
+
+            pkts.push_back(pkt);
+            i += pkt.getRawLength();
+        }
+
+        data.clear();
     }
 }
 
@@ -134,15 +131,15 @@ int main(int argc, char **argv)
 
 Client::Client()
 {
-	QHBoxLayout *layout;
-    
+    QHBoxLayout *layout;
+
     layout = new QHBoxLayout();
-	video = new QLabel();
-	layout->addWidget(video);
+    video = new QLabel();
+    layout->addWidget(video);
 
-	connect(this, SIGNAL(gotNewImage()), this, SLOT(draw()));
+    connect(this, SIGNAL(gotNewImage()), this, SLOT(draw()));
 
-	setLayout(layout);
+    setLayout(layout);
 
     future = QtConcurrent::run(listener, this);
 }
@@ -175,18 +172,32 @@ void Client::draw()
 
 void Client::quit()
 {
-	running = false;
-	future.waitForFinished();
+    running = false;
+    future.waitForFinished();
 }
 
 Mat assembleFrame(const vector<Packet> &pkts)
 {
     Mat frame;
+    vector<uint8_t> raw;
 
-    /* TODO convert packets to frame */
+    for (const auto &pkt : pkts)
+    {
+        size_t size = pkt.getOffset() + pkt.getLength();
 
-    //frame = Mat(Size(160, 120), CV_8UC2, data.data());
-    //cvtColor(frame, frame, COLOR_YUV2BGR_YUY2);
+        if (size > raw.size())
+        {
+            raw.resize(size);
+        }
+
+        for (size_t i = 0; i < pkt.getLength(); i++)
+        {
+            raw[pkt.getOffset() + i] = pkt.getData()[i];
+        }
+    }
+
+    frame = Mat(Size(160, 120), CV_8UC2, data.data());
+    cvtColor(frame, frame, CV_YUV2BGRA_YUY2);
 
     return frame;
 }
