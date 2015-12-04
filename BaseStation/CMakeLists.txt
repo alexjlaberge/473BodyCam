@@ -22,6 +22,9 @@ target_link_libraries(client
     pkt
     )
 
+add_executable(dump dump.cpp)
+target_link_libraries(dump pkt)
+
 add_executable(examine examine.cpp)
 target_link_libraries(examine pkt ${OpenCV_LIBS})
 
