@@ -156,7 +156,7 @@ int main(int argc, char **argv)
         cout << endl;
 
         Mat img{Size(160, 120), CV_8UC2, raw.data()};
-        Mat dst{Size(160, 120), CV_8UC3};
+        Mat dst;
 
         //cvtColor(img, dst, CV_YUV2GRAY_UYVY);
         //cvtColor(img, dst, CV_YUV2GRAY_YUY2);
