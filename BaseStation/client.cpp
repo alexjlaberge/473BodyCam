@@ -31,7 +31,6 @@ using std::mutex;
 using std::runtime_error;
 using std::vector;
 
-vector<char> data(38400);
 volatile static bool running = true;
 
 void listener(Client *client);
@@ -196,7 +195,7 @@ Mat assembleFrame(const vector<Packet> &pkts)
         }
     }
 
-    frame = Mat(Size(160, 120), CV_8UC2, data.data());
+    frame = Mat(Size(160, 120), CV_8UC2, raw.data());
     cvtColor(frame, frame, CV_YUV2BGRA_YUY2);
 
     return frame;
