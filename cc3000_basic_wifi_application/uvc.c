@@ -500,6 +500,7 @@ static void uvc_pipe_cb(uint32_t pipe, uint32_t event)
 			len = USBHCDPipeTransferSizeGet(pipe);
 			USBHCDPipeDataAck(pipe);
 			uvc_parse_received_packet(cam_stream_buf, len);
+			for (i = 0; i < len; i++) { cam_stream_buf[i] = 0; }
 			break;
 		default:
 			uvc_parsing_fault(event);
@@ -558,7 +559,7 @@ void uvc_parse_received_packet_uncomp(uint8_t *buf, uint32_t len)
 		if ((len - i) < (cam_inst.stream_frame_size + header_len - processed))
 		{
 			processed += len - i;
-			cam_inst.data_cb(buf + i, len - i);
+			cam_inst.data_cb(&(buf[i]), len - i);
 			i += len - i;
 			continue;
 		}
@@ -566,7 +567,7 @@ void uvc_parse_received_packet_uncomp(uint8_t *buf, uint32_t len)
 		to_send = cam_inst.stream_frame_size + header_len - processed;
 		processed = 0;
 
-		cam_inst.data_cb(buf + i, to_send);
+		cam_inst.data_cb(&(buf[i]), to_send);
 		cam_inst.end_cb();
 
 		i += to_send;

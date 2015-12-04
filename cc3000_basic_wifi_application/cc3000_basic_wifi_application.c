@@ -598,13 +598,53 @@ int sd;
 // [3] Data to send as a string, <255bytes, no spaces
 //
 //*****************************************************************************
-int
-WIFI_sendUSBData(const uint8_t * buf, size_t size)
+
+/**
+ * | offset | size | field  |
+ * |      0 |    2 | length |
+ * |      2 |    1 | ID     |
+ * |      3 |    1 | type   |
+ * |      4 |    4 | offset |
+ */
+
+#define WIFI_HEADER_SIZE 8
+#define WIFI_PACKET_SIZE (256 - WIFI_HEADER_SIZE)
+
+volatile uint8_t pkt_id = 0;
+
+int WIFI_sendUSBData(const uint8_t * buf, size_t size)
 {
 	int a;
+	size_t i;
+	uint8_t pkt[WIFI_PACKET_SIZE + WIFI_HEADER_SIZE];
+
 	a = socket(AF_INET, SOCK_DGRAM, 0);
-        sendto(a, buf, size, 0,
-                            &g_tSocketAddr,sizeof(sockaddr));
+
+	*((uint16_t *) pkt + 0) = (uint16_t) WIFI_PACKET_SIZE;
+	pkt[2] = pkt_id;
+	pkt[3] = 4;
+
+	for (i = 0; i < (size / WIFI_PACKET_SIZE) - 1; i++)
+	{
+		uint32_t offset = (uint32_t) (i * WIFI_PACKET_SIZE);
+
+		pkt[4] = (uint8_t) ((offset & 0x000000FF) >> 0);
+		pkt[5] = (uint8_t) ((offset & 0x0000FF00) >> 8);
+		pkt[6] = (uint8_t) ((offset & 0x00FF0000) >> 16);
+		pkt[7] = (uint8_t) ((offset & 0xFF000000) >> 24);
+
+		memcpy(&(pkt[WIFI_HEADER_SIZE]),
+			&(buf[offset]),
+			WIFI_PACKET_SIZE);
+
+		sendto(a,
+			pkt,
+			WIFI_PACKET_SIZE + WIFI_HEADER_SIZE,
+			0,
+			&g_tSocketAddr,
+			sizeof(sockaddr));
+	}
+
     closesocket(a);
 
     return(0);
@@ -765,13 +805,13 @@ int readTrigger()
 
 initWiFiEndpoint()
 {
-	uint32_t ui32Port = 80;
+	uint32_t ui32Port = 8888;
 	uint8_t ui8IPBlock1,ui8IPBlock2,ui8IPBlock3,ui8IPBlock4;
 
 	//
 	// Extract IP Address.
 	//
-	DotDecimalDecoder("192.168.10.144",&ui8IPBlock1,&ui8IPBlock2,&ui8IPBlock3,
+	DotDecimalDecoder("192.168.10.103",&ui8IPBlock1,&ui8IPBlock2,&ui8IPBlock3,
 									&ui8IPBlock4);
 
 	//
@@ -811,7 +851,6 @@ void initTrigger()
 
 volatile uint8_t pkt_type = 0;
 volatile uint32_t pkt_offset = 0;
-volatile uint8_t pkt_id = 0;
 void uvc_start_cb(void)
 {
 	if (uvc_is_mjpeg())
@@ -825,7 +864,7 @@ void uvc_start_cb(void)
 
 	if(pkt_id == 255)
 	{
-		pkt_id = 0;
+		pkt_id = 1;
 	}
 	else
 	{
@@ -835,34 +874,32 @@ void uvc_start_cb(void)
 	pkt_offset = 0;
 }
 
-#define USB_BUF_SIZE 512
+#define USB_BUF_SIZE 38400
 #define WIFI_PKT_HEADER_SIZE 8
 volatile uint8_t usb_buf[USB_BUF_SIZE];
 volatile size_t usb_buf_len = 0;
+volatile size_t usb_buf_i = 0;
 void uvc_data_cb(const uint8_t *buf, size_t len)
 {
-	*((uint16_t *) (usb_buf + 0)) = (uint16_t) len;
-	*((uint8_t*) usb_buf + 2) = pkt_id;
-	*((uint8_t*) usb_buf + 3) = pkt_type;
-	*((uint32_t *) (usb_buf + 4)) = pkt_offset;
-	pkt_offset += (uint32_t) len;
+	//*((uint16_t *) (usb_buf + 0)) = (uint16_t) len;
+	//*((uint8_t*) usb_buf + 2) = pkt_id;
+	//*((uint8_t*) usb_buf + 3) = pkt_type;
+	//*((uint32_t *) (usb_buf + 4)) = pkt_offset;
+	//pkt_offset += (uint32_t) len;
 
-	if (len > 0 && usb_buf_len == 0)
+	size_t i;
+
+	for (i = 0; i < len && usb_buf_i < USB_BUF_SIZE; i++)
 	{
-		size_t i;
-		for (i = WIFI_PKT_HEADER_SIZE;
-			i < (len + WIFI_PKT_HEADER_SIZE) && i < USB_BUF_SIZE;
-			i++)
-		{
-			usb_buf[i] = buf[i - WIFI_PKT_HEADER_SIZE];
-		}
-		usb_buf_len = i;
+		usb_buf[usb_buf_i] = buf[i];
+		usb_buf_i++;
 	}
 }
 
 void uvc_end_cb(void)
 {
-	//usb_ending = 1;
+	usb_buf_len = usb_buf_i;
+	usb_buf_i = 0;
 }
 
 int
@@ -968,7 +1005,6 @@ main(void)
         	usb_buf_len = 0;
         }
     }
-
 }
 
 /*int main(void)
