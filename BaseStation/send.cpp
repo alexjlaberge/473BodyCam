@@ -70,7 +70,6 @@ int main(int argc, char **argv)
             perror("error sending");
             return 2;
         }
-        cout << "sent " << err << endl;
 
         usleep(1000);
     }

@@ -22,6 +22,8 @@ public:
 
 	void displayImage(const cv::Mat &image);
 
+    void setFrameID(unsigned int id);
+
 	bool isRunning() const;
 
 
