@@ -27,6 +27,7 @@ using std::dec;
 using std::endl;
 using std::hex;
 using std::ifstream;
+using std::ofstream;
 using std::string;
 using std::vector;
 
@@ -145,32 +146,66 @@ int main(int argc, char **argv)
         cout << "type: " << type << endl;
 
         cout << hex;
-        for (size_t j = 0; j < 1024; j++)
+        for (size_t j = 0; j < 512; j++)
         {
             if (j > 0 && (j % 32) == 0)
             {
                 cout << endl;
             }
-            cout << (static_cast<unsigned int>(raw[j + 1024 * 20]) & 0xFF) << " ";
+            cout << (static_cast<unsigned int>(raw[j]) & 0xFF) << " ";
         }
         cout << endl;
 
-        Mat img{Size(160, 120), CV_8UC2, raw.data()};
+        Mat img{Size(160, 120), CV_8UC3, raw.data()};
         Mat dst;
 
         //cvtColor(img, dst, CV_YUV2GRAY_UYVY);
         //cvtColor(img, dst, CV_YUV2GRAY_YUY2);
         //cvtColor(img, dst, CV_YUV2BGR_UYVY);
         //cvtColor(img, dst, CV_YUV2BGRA_UYVY);
-        cvtColor(img, dst, CV_YUV2BGR_YUY2);
+        //cvtColor(img, dst, CV_YUV2BGR_YUY2);
         //cvtColor(img, dst, CV_YUV2BGR_YVYU);
         //cvtColor(img, dst, CV_YUV2BGRA_YUY2);
         //cvtColor(img, dst, CV_YUV2BGRA_YVYU);
         //cvtColor(img, dst, CV_YUV2GRAY_NV12);
         //cvtColor(img, dst, CV_YUV2BGR_NV12);
+        cvtColor(img, dst, CV_YCrCb2BGR);
 
         imshow("Police Video", dst);
         waitKey(0);
+
+        ofstream out_jpeg{"out.jpg", ofstream::binary};
+        for (size_t j = 0; j < raw.size(); j++)
+        {
+            if (raw[j] == 0xFF && raw[j + 1] == 0xD8)
+            {
+                cout << "hit the start" << endl;
+                out_jpeg.write(reinterpret_cast<char *>(raw.data() + j), 2);
+                j++;
+            }
+            else if (raw[j] == 0xFF && raw[j + 1] == 0xDB)
+            {
+                cout << "hit the start 2" << endl;
+                out_jpeg.write(reinterpret_cast<char *>(raw.data() + j), 2);
+                j++;
+            }
+            else if (raw[j] == 0xFF && raw[j + 1] == 0xC0)
+            {
+                cout << "hit the start 3" << endl;
+                out_jpeg.write(reinterpret_cast<char *>(raw.data() + j), 2);
+                j++;
+            }
+            else if (raw[j] == 0xFF && raw[j + 1] == 0xD9)
+            {
+                cout << "hit the end" << endl;
+                out_jpeg.write(reinterpret_cast<char *>(raw.data() + j), 2);
+                return 0;
+            }
+            else
+            {
+                out_jpeg.write(reinterpret_cast<char *>(raw.data() + j), 1);
+            }
+        }
     }
 
     return 0;
