@@ -22,9 +22,11 @@
 
 using bodycam::Client;
 using bodycam::Packet;
+using bodycam::PacketType;
 using bodycam::ParseError;
 using cv::Mat;
 using cv::Size;
+using cv::imdecode;
 using std::cout;
 using std::endl;
 using std::lock_guard;
@@ -174,14 +176,18 @@ void Client::displayImage(const Mat &image)
         im = image.clone();
     }
 
-    cout << "displaying image" << endl;
-
     emit gotNewImage();
 }
 
 void Client::draw()
 {
     Mat tmp;
+
+    if (im.empty())
+    {
+        im = Mat{Size{160, 120}, CV_8UC3};
+        return;
+    }
 
     {
         lock_guard<mutex> g(imLock);
@@ -205,6 +211,8 @@ Mat assembleFrame(const vector<Packet> &pkts)
 {
     Mat frame;
     vector<uint8_t> raw;
+    vector<uint8_t> mjpeg;
+    bool in_mjpeg{false};
 
     for (const auto &pkt : pkts)
     {
@@ -221,8 +229,40 @@ Mat assembleFrame(const vector<Packet> &pkts)
         }
     }
 
-    frame = Mat(Size(160, 120), CV_8UC2, raw.data());
-    cvtColor(frame, frame, CV_YUV2BGRA_YUY2);
+    if (pkts[0].getType() == PacketType::MJPEG)
+    {
+        for (size_t j = 0; j < (raw.size() - 1); j++)
+        {
+            if (raw[j] == 0xFF && raw[j + 1] == 0xD8)
+            {
+                mjpeg.push_back(raw[j]);
+                in_mjpeg = true;
+            }
+            else if (raw[j] == 0xFF && raw[j + 1] == 0xD9)
+            {
+                mjpeg.push_back(raw[j]);
+                mjpeg.push_back(raw[j + 1]);
+                break;
+            }
+            else if (in_mjpeg)
+            {
+                mjpeg.push_back(raw[j]);
+            }
+        }
+    }
+
+    switch (pkts[0].getType())
+    {
+    case PacketType::UNCOMP:
+        frame = Mat(Size(160, 120), CV_8UC2, raw.data());
+        cvtColor(frame, frame, CV_YUV2BGR_YUY2);
+        break;
+    case PacketType::MJPEG:
+        frame = imdecode(mjpeg, 1);
+        break;
+    default:
+        break;
+    }
 
     return frame;
 }
