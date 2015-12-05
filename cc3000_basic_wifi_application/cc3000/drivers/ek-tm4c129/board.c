@@ -45,6 +45,10 @@
 #include "dispatcher.h"
 #include "spi_version.h"
 #include "board.h"
+#include "src/ff.h"
+#include "src/diskio.h"
+
+
 
 //*****************************************************************************
 //
@@ -271,7 +275,7 @@ InitSysTick(void)
     //
     // Configure SysTick to occur 10 times per second and enable its interrupt.
     //
-    SysTickPeriodSet(g_ui32SysClock / SYSTICK_PER_SECOND);
+    SysTickPeriodSet(g_ui32SysClock / 100);
     SysTickIntEnable();
     SysTickEnable();
 }
@@ -290,20 +294,22 @@ SysTickHandler(void)
     //
     // Increment the tick counter.
     //
-    ulTickCount++;
+    disk_timerproc();
+
+    //ulTickCount++;
 
     //
     // Has half a second passed since we last called the event handler?
     //
-    if(ulTickCount >= (SYSTICK_PER_SECOND / 2))
-    {
+    //if(ulTickCount >= (SYSTICK_PER_SECOND / 2))
+   // {
         //
         // Yes = call the unsolicited event handler.  We need to do this a
         // few times each second.
         //
-        hci_unsolicited_event_handler();
-        ulTickCount = 0;
-    }
+    //    hci_unsolicited_event_handler();
+   //     ulTickCount = 0;
+   // }
 }
 
 //*****************************************************************************

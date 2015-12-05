@@ -72,8 +72,8 @@
 #define WIFI_IMG_START "yo new image"
 #define WIFI_IMG_END "kthxbye"
 
-#define WIFI_SSID "dd-wrt"
-#define WIFI_PASS "roar2015"
+#define WIFI_SSID "AndroidAP"
+#define WIFI_PASS "password"
 
 int i;
 volatile int gpsFound;
@@ -81,7 +81,15 @@ volatile char GPS[100];
 volatile char USB[256];
 volatile int GPSSize;
 
-volatile int msp430Trigger;
+static FATFS fatFS;
+static DIR dir;
+static FILINFO fileInfo;
+static FIL fil;
+
+
+volatile int disconnect_happened;
+volatile int msp430Trigger = 1;
+volatile int canEnd = 1;
 int offset;
 
 FATFS sdVolume;			// FatFs work area needed for each volume
@@ -342,7 +350,7 @@ CC3000_UsynchCallback(long lEventType, char *pcData, unsigned char ucLength)
     {
         UARTprintf("\r    Received Unsolicited Disconnect from CC3000\n>");
 
-        msp430Trigger = 1;
+        disconnect_happened = 1;
         g_ui32CC3000Connected = 0;
         g_ui32CC3000DHCP = 0;
         g_ui32CC3000DHCP_configured = 0;
@@ -671,15 +679,19 @@ UARTIntHandler(void)
     i = 0;
     curr = 0;
     commacount = 0;
+    //GPIOPinWrite(GPIO_PORTB_BASE, GPIO_PIN_5, 0x20 );
     //GPS = (char*)malloc(256);
     while(ROM_UARTCharsAvail(UART6_BASE))
     {
+    	//GPIOPinWrite(GPIO_PORTB_BASE, GPIO_PIN_5, 0x20 );
         //
         // Read the next character from the UART and write it back to the UART.
         //
         //ROM_UARTCharPutNonBlocking(UART0_BASE,
                                    //ROM_UARTCharGetNonBlocking(UART0_BASE));
     	if(ROM_UARTCharGet(UART6_BASE) == '$')
+    	{
+    		//GPIOPinWrite(GPIO_PORTB_BASE, GPIO_PIN_5, 0x20 );
     		if(ROM_UARTCharGet(UART6_BASE) == 'G')
     			if(ROM_UARTCharGet(UART6_BASE) == 'P')
     				if(ROM_UARTCharGet(UART6_BASE) == 'G')
@@ -688,6 +700,7 @@ UARTIntHandler(void)
     						{
     							if(ROM_UARTCharGet(UART6_BASE) ==',')
     							{
+    								GPIOPinWrite(GPIO_PORTB_BASE, GPIO_PIN_5, 0x20 );
 									while(i < 100){
 										curr =ROM_UARTCharGet(UART6_BASE);
 										GPS[i] =curr;
@@ -709,6 +722,7 @@ UARTIntHandler(void)
     							//curr =ROM_UARTCharGetNonBlocking(UART6_BASE)
 
     						}
+    	}
 
 
 
@@ -746,18 +760,9 @@ void initGPS()
 	GPIOPinConfigure(GPIO_PP0_U6RX);
 	GPIOPinConfigure(GPIO_PP1_U6TX);
 	ROM_GPIOPinTypeUART(GPIO_PORTP_BASE, GPIO_PIN_0 | GPIO_PIN_1);
-	ROM_UARTConfigSetExpClk(UART6_BASE, clock, 9600, (UART_CONFIG_WLEN_8 |UART_CONFIG_STOP_ONE | UART_CONFIG_PAR_NONE));
+	ROM_UARTConfigSetExpClk(UART6_BASE, clock, 4800, (UART_CONFIG_WLEN_8 |UART_CONFIG_STOP_ONE | UART_CONFIG_PAR_NONE));
 	ROM_IntEnable(INT_UART6);
 	ROM_UARTIntEnable(UART6_BASE, UART_INT_RX);
-}
-
-int readTrigger()
-{
-	int k4;
-	//Read in K4 status
-	k4 = ROM_GPIOPinRead(GPIO_PORTK_BASE, GPIO_PIN_4);
-	//Return K4 status
-	return k4;
 }
 
 initWiFiEndpoint()
@@ -768,7 +773,7 @@ initWiFiEndpoint()
 	//
 	// Extract IP Address.
 	//
-	DotDecimalDecoder("192.168.10.122",&ui8IPBlock1,&ui8IPBlock2,&ui8IPBlock3,
+	DotDecimalDecoder("192.168.43.39",&ui8IPBlock1,&ui8IPBlock2,&ui8IPBlock3,
 									&ui8IPBlock4);
 
 	//
@@ -810,6 +815,7 @@ volatile uint32_t pkt_offset = 0;
 volatile uint8_t pkt_id = 0;
 void uvc_start_cb(void)
 {
+	canEnd = 0;
 	if(pkt_id == 255)
 	{
 		pkt_id = 0;
@@ -845,36 +851,67 @@ void uvc_data_cb(const uint8_t *buf, size_t len)
 
 void uvc_end_cb(void)
 {
+	canEnd = 1;
 	//usb_ending = 1;
 }
 
+volatile int canEnd;
+
 int
-main(void)
+main(void) {
 
-{
-    g_ui32CC3000DHCP = 0;
+
+			//SysCtlLDOSleepSet(SYSCTL_LDO_1_15V);
+			//SysCtlSleepPowerSet(SYSCTL_SRAM_STANDBY);
+			ROM_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);
+			ROM_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOD);
+			ROM_GPIODirModeSet(GPIO_PORTB_BASE, GPIO_PIN_5, GPIO_DIR_MODE_OUT);
+			ROM_GPIODirModeSet(GPIO_PORTD_BASE, GPIO_PIN_5, GPIO_DIR_MODE_OUT);
+			MAP_GPIOPadConfigSet(GPIO_PORTB_BASE, GPIO_PIN_5,
+										 GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD);
+			MAP_GPIOPadConfigSet(GPIO_PORTB_BASE, GPIO_PIN_5,
+													 GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD);
+			//initTrigger();
+			//GPIOPinWrite(GPIO_PORTB_BASE, GPIO_PIN_5, 0x00 );
+			//while(1){
+			//if(!msp430Trigger)
+			//{
+			//		GPIOPinWrite(GPIO_PORTB_BASE, GPIO_PIN_5, 0x00 );
+			//		ROM_SysCtlDelay(1000000);
+			//		GPIOPinWrite(GPIO_PORTB_BASE, GPIO_PIN_5, 0x20 );
+			//		ROM_SysCtlDelay(1000000);
+
+			//	ROM_SysCtlSleep();
+
+
+	volatile FRESULT iFResult;
+
+	g_ui32CC3000DHCP = 0;
     g_ui32Socket = SENTINEL_EMPTY;
-
+    FPULazyStackingEnable();
 
     //Initialize MSP430 Trigger (PK4)
-	//initTrigger();
+	initTrigger();
 
     //Initialize Sleep
-	//SysCtlLDOSleepSet(SYSCTL_LDO_1_15V);
-	//SysCtlSleepPowerSet(SYSCTL_SRAM_STANDBY);
+	SysCtlLDOSleepSet(SYSCTL_LDO_1_15V);
+	SysCtlSleepPowerSet(SYSCTL_SRAM_STANDBY);
 
     //Initialize USB
 	uint32_t ui32SysClock;
 	CAMERA_STATE = CAMERA_UNCONNECTED;
-	ui32SysClock = SysCtlClockFreqSet((SYSCTL_XTAL_25MHZ |
+	g_ui32SysClock = SysCtlClockFreqSet((SYSCTL_XTAL_25MHZ |
 		                               SYSCTL_OSC_MAIN |
 		                               SYSCTL_USE_PLL |
 		                               SYSCTL_CFG_VCO_480), 120000000);
 	configure_pins();
 
-	SysTickPeriodSet(ui32SysClock / TICKS_PER_SECOND);
+	SysTickPeriodSet(g_ui32SysClock / TICKS_PER_SECOND);
 	SysTickEnable();
 	SysTickIntEnable();
+
+	IntMasterEnable();
+
 
 	SysCtlPeripheralEnable(SYSCTL_PERIPH_UDMA);
 	uDMAEnable();
@@ -886,70 +923,83 @@ main(void)
 	USBHCDInit(0, MEM_POOL, MEM_POOL_SIZE);
 	uvc_init(10000000, uvc_start_cb, uvc_data_cb, uvc_end_cb);
 
-	//Initialize GPS stuff
-    //initGPS();
-	//ROM_IntEnable(INT_UART6);
-	//ROM_UARTIntEnable(UART6_BASE, UART_INT_RX);
+	/*Initialize GPS stuff
+    initGPS();
+	ROM_IntEnable(INT_UART6);
+	ROM_UARTIntEnable(UART6_BASE, UART_INT_RX);
+	*/
 
-    //Initialize WiFi and corresponding debug UART
+    /*Initialize WiFi and corresponding debug UART
     initWiFiAndSysUART();
     initWiFiEndpoint();
-    ROM_IntMasterEnable();
-    wlan_connect(WLAN_SEC_WPA2, WIFI_SSID, ustrlen(WIFI_SSID), NULL, WIFI_PASS, ustrlen(WIFI_PASS));
-    while(!g_ui32CC3000DHCP)
-    {
-    	if(msp430Trigger)
-    	{
-    		wlan_connect(WLAN_SEC_WPA2, WIFI_SSID, ustrlen(WIFI_SSID), NULL, WIFI_PASS, ustrlen(WIFI_PASS));
-    		msp430Trigger = 0;
-    	}
+    */
 
-    }
+	/* SD EXAMPLE
+    iFResult = f_mount(0, &fatFS);
+    iFResult = f_opendir(&dir, "");
+    uint32_t count_num = 8*1024;
+    iFResult = f_open(&fil, "bbb.txt", FA_CREATE_ALWAYS|FA_WRITE);
+    SysCtlDelay(SysCtlClockGet()/3);
+    iFResult = f_write(&fil, "Jake Sucks!", 11, &count_num);
+    iFResult = f_close(&fil);
+    f_mount(0, NULL);
+    */
 
+    //wlan_connect(WLAN_SEC_WPA2, WIFI_SSID, ustrlen(WIFI_SSID), NULL, WIFI_PASS, ustrlen(WIFI_PASS));
+    //while(!g_ui32CC3000DHCP)
+    //{
+    //	if(disconnect_happened)
+    //	{
+    //		wlan_connect(WLAN_SEC_WPA2, WIFI_SSID, ustrlen(WIFI_SSID), NULL, WIFI_PASS, ustrlen(WIFI_PASS));
+    //		disconnect_happened = 0;
+    //	}
+
+   // }
+   // while(1)
+   // {
+
+   // 	WIFI_sendUSBData("Hello", 5);
+    //	ROM_SysCtlDelay(10000000);
+    //}
     while(1)
     {
+    	/* Sleep part of loop
+    	while(!msp430Trigger)
+    	{
+    		CAMERA_STATE = CAMERA_UNCONNECTED;
+    		ROM_SysCtlSleep();
+    	}
+    	*/
+    	while(msp430Trigger || !canEnd)
+    	{
+    		USBHCDMain();
 
-    	USBHCDMain();
+			switch (CAMERA_STATE)
+			{
+				case CAMERA_INIT:
+					uvc_probe_set_cur();
+					uvc_set_iface();
+					CAMERA_STATE = CAMERA_CONNECTED;
+					break;
 
-            switch (CAMERA_STATE)
-            {
-                case CAMERA_INIT:
-    				uvc_probe_set_cur();
-    				uvc_set_iface();
-                	CAMERA_STATE = CAMERA_CONNECTED;
-                    break;
+				case CAMERA_CONNECTED:
+					uvc_main();
+					break;
 
-                case CAMERA_CONNECTED:
-    				uvc_main();
-                    break;
+				case CAMERA_UNCONNECTED:
+					break;
 
-                case CAMERA_UNCONNECTED:
-                    break;
+				default:
+					break;
+			}
 
-                default:
-                    break;
-            }
+			if (usb_buf_len > 0)
+			{
+				WIFI_sendUSBData(usb_buf, usb_buf_len);
+				usb_buf_len = 0;
+			}
+    	}
 
-		/*if (usb_ending)
-		{
-			char *msg = WIFI_IMG_END;
-			WIFI_sendUSBData((const uint8_t *) msg, strlen(WIFI_IMG_END));
-			usb_ending = 0;
-		}
-
-		if (usb_starting)
-		{
-			offset = 0;
-			char *msg = WIFI_IMG_START;
-			WIFI_sendUSBData((const uint8_t *) msg, strlen(WIFI_IMG_START));
-			usb_starting = 0;
-		}*/
-
-        if (usb_buf_len > 0)
-        {
-        	WIFI_sendUSBData(usb_buf, usb_buf_len);
-        	usb_buf_len = 0;
-        }
     }
 
 }
