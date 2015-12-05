@@ -622,7 +622,18 @@ int WIFI_sendUSBData(const uint8_t * buf, size_t size)
 
 	*((uint16_t *) pkt + 0) = (uint16_t) WIFI_PACKET_SIZE;
 	pkt[2] = pkt_id;
-	pkt[3] = 4;
+	if (uvc_is_uncomp())
+	{
+		pkt[3] = 4;
+	}
+	else if (uvc_is_mjpeg())
+	{
+		pkt[3] = 2;
+	}
+	else
+	{
+		pkt[3] = 0;
+	}
 
 	for (i = 0; i < (size / WIFI_PACKET_SIZE) - 1; i++)
 	{
@@ -811,7 +822,7 @@ initWiFiEndpoint()
 	//
 	// Extract IP Address.
 	//
-	DotDecimalDecoder("192.168.10.103",&ui8IPBlock1,&ui8IPBlock2,&ui8IPBlock3,
+	DotDecimalDecoder("192.168.10.255",&ui8IPBlock1,&ui8IPBlock2,&ui8IPBlock3,
 									&ui8IPBlock4);
 
 	//
@@ -874,7 +885,9 @@ void uvc_start_cb(void)
 	pkt_offset = 0;
 }
 
-#define USB_BUF_SIZE 38400
+void uvc_end_cb(void);
+
+#define USB_BUF_SIZE (128 * 1024)
 #define WIFI_PKT_HEADER_SIZE 8
 volatile uint8_t usb_buf[USB_BUF_SIZE];
 volatile size_t usb_buf_len = 0;
@@ -893,6 +906,11 @@ void uvc_data_cb(const uint8_t *buf, size_t len)
 	{
 		usb_buf[usb_buf_i] = buf[i];
 		usb_buf_i++;
+	}
+
+	if (usb_buf_i == USB_BUF_SIZE)
+	{
+		uvc_end_cb();
 	}
 }
 

@@ -1,7 +1,7 @@
 #include "uvc.h"
 
 #define INT_BUFFER_SIZE 64
-#define VIDEO_BUFFER_SIZE 512
+#define VIDEO_BUFFER_SIZE 1024
 
 #define UVC_VERSION 0x150
 #define UVC_SC_UNDEFINED 0x00
@@ -577,20 +577,37 @@ void uvc_parse_received_packet_uncomp(uint8_t *buf, uint32_t len)
 void uvc_parse_received_packet_mjpeg(uint8_t *buf, uint32_t len)
 {
 	uint32_t i = 0;
+	static uint8_t fid = 2;
+	uint8_t new_fid = buf[1] & 0x1;
+	uint8_t eof = buf[1] & 0x2;
+	uint8_t header_len = buf[0];
+	static uint8_t has_ended = 1;
 
-	for (i = 0; i < (len - 1); i++)
+	if (new_fid != fid && has_ended)
 	{
-		if (0xFF == buf[i + 1] && 0xD8 == buf[i])
-		{
-			cam_inst.start_cb();
-		}
-		else if (0xFF == buf[i + 1] && 0xD9 == buf[i])
-		{
-			cam_inst.end_cb();
-		}
+		cam_inst.start_cb();
+		fid = new_fid;
 	}
 
-	cam_inst.data_cb(buf, len);
+	/* TODO this causes a fault isr */
+	//for (i = 0; i < (len - 1); i++)
+	//{
+	//	if (0xFF == buf[i] && 0xD8 == buf[i + 1])
+	//	{
+	//		cam_inst.start_cb();
+	//	}
+	//	else if (0xFF == buf[i] && 0xD9 == buf[i + 1])
+	//	{
+	//		cam_inst.end_cb();
+	//	}
+	//}
+
+	cam_inst.data_cb(&(buf[header_len]), len - header_len);
+
+	if (/*eof &&*/ buf[len - 1] == 0xFF && buf[len - 2] == 0xD9)
+	{
+		cam_inst.end_cb();
+	}
 }
 
 void uvc_main(void)
@@ -1111,6 +1128,7 @@ size_t uvc_parse_cs_vs_input_header(uint8_t *buf, size_t max_len)
 size_t uvc_parse_mjpeg_format_desc(uint8_t *buf, size_t max_len)
 {
 	uint8_t len = buf[0];
+	uint8_t type = buf[1];
 	uint8_t subtype = buf[2];
 	uint8_t idx = buf[3];
 	size_t i = 0;
@@ -1120,7 +1138,12 @@ size_t uvc_parse_mjpeg_format_desc(uint8_t *buf, size_t max_len)
 		return 0;
 	}
 
-	if (subtype != USB_DTYPE_CS_INTERFACE)
+	if (type != USB_DTYPE_CS_INTERFACE)
+	{
+		uvc_parsing_fault(0);
+	}
+
+	if (subtype != UVC_VS_FORMAT_MJPEG)
 	{
 		uvc_parsing_fault(0);
 	}
@@ -1150,6 +1173,8 @@ size_t uvc_parse_mjpeg_frame_desc(uint8_t *buf, size_t max_len,
 	uint8_t subtype = buf[2];
 	uint32_t *max_rate;
 	uint32_t *ival;
+	uint16_t *height;
+	uint16_t *width;
 	uint8_t idx;
 
 	if (len < 26 ||
@@ -1160,6 +1185,8 @@ size_t uvc_parse_mjpeg_frame_desc(uint8_t *buf, size_t max_len,
 	}
 
 	idx = buf[3];
+	width = (uint16_t *) (buf + 5);
+	height = (uint16_t *) (buf + 7);
 	max_rate = (uint32_t *) (buf + 13);
 	ival = (uint32_t *) (buf + 26);
 
@@ -1173,6 +1200,8 @@ size_t uvc_parse_mjpeg_frame_desc(uint8_t *buf, size_t max_len,
 	{
 		cam_inst.stream_format_idx = fmt_idx;
 		cam_inst.stream_frame_idx = idx;
+		cam_inst.stream_frame_height = *height;
+		cam_inst.stream_frame_width = *width;
 		cam_inst.stream_format = UVC_VS_FORMAT_MJPEG;
 		cam_inst.stream_max_bandwidth = *max_rate;
 		cam_inst.frame_interval = *ival;
@@ -1273,10 +1302,10 @@ size_t uvc_parse_vsid(uint8_t *buf, size_t max_len)
 
 	if (cam_inst.device != NULL)
 	{
-		//cam_inst.stream_iface_alt = alternate_setting;
-		//cam_inst.stream_iface = buf[2];
-		cam_inst.stream_iface_alt = 1;
-		cam_inst.stream_iface = 1;
+		cam_inst.stream_iface_alt = alternate_setting;
+		cam_inst.stream_iface = buf[2];
+		//cam_inst.stream_iface_alt = 1;
+		//cam_inst.stream_iface = 1;
 	}
 
 	return len;
@@ -1389,7 +1418,7 @@ uint32_t uvc_probe_set_cur_10(void)
 	probe.wCompQuality = 0;
 	probe.wCompWindowSize = 0;
 	probe.wDelay = 0;
-	probe.dwMaxVideoFrameSize = (1920 * 1080 * 3 * 8);
+	probe.dwMaxVideoFrameSize = (128 * 1024);
 	probe.dwMaxPayloadTransferSize = 0;
 	//probe.dwClockFrequency = 0;
 	//probe.bmFramingInfo = 0;
@@ -1436,6 +1465,7 @@ uint32_t uvc_probe_set_cur_10(void)
 uint32_t uvc_probe_set_cur_15(void)
 {
 	struct uvc_probe_ctrl_15 probe;
+	struct uvc_probe_ctrl_15 res;
 	uint32_t sent;
 	tUSBRequest req;
 
@@ -1447,15 +1477,15 @@ uint32_t uvc_probe_set_cur_15(void)
 	req.wLength = sizeof(probe);
 
 	probe.bmHint = 1;
-	probe.bFormatIndex = 1;
-	probe.bFrameIndex = 1;
+	probe.bFormatIndex = cam_inst.stream_format_idx;
+	probe.bFrameIndex = cam_inst.stream_frame_idx;
 	probe.dwFrameInterval = cam_inst.frame_interval;
 	probe.wKeyFrameRate = 0;
 	probe.wPFrameRate = 0;
 	probe.wCompQuality = 1;
 	probe.wCompWindowSize = 0;
 	probe.wDelay = 0;
-	probe.dwMaxVideoFrameSize = (1024 * 1024 * 8);
+	probe.dwMaxVideoFrameSize = (1920 * 1080 * 3 * 8);
 	probe.dwMaxPayloadTransferSize = cam_inst.device->sDeviceDescriptor.bMaxPacketSize0;
 	probe.dwClockFrequency = 0;
 	probe.bmFramingInfo = 0;
@@ -1477,20 +1507,29 @@ uint32_t uvc_probe_set_cur_15(void)
 		uvc_parsing_fault(0);
 	}
 
+	// VS_PROBE_CONTROL(GET_CUR)
+	req.bmRequestType = USB_RTYPE_DIR_IN | USB_RTYPE_CLASS |
+		USB_RTYPE_INTERFACE;
+	req.bRequest = UVC_VS_PROBE_CONTROL_GET_CUR;
+	req.wValue = (UVC_VS_PROBE_CONTROL << 8);
+	req.wIndex = cam_inst.stream_iface;
+	req.wLength = sizeof(res);
+	sent = USBHCDControlTransfer(0, &req, cam_inst.device, (uint8_t *) &res,
+			sizeof(res),
+			cam_inst.device->sDeviceDescriptor.bMaxPacketSize0);
+
+	cam_inst.stream_frame_size = res.dwMaxVideoFrameSize;
+
+	// VS_COMMIT_CONTROL(SET_CUR)
 	req.bmRequestType = USB_RTYPE_DIR_OUT | USB_RTYPE_CLASS |
 		USB_RTYPE_INTERFACE;
 	req.bRequest = UVC_VS_COMMIT_CONTROL_SET_CUR;
 	req.wValue = (UVC_VS_COMMIT_CONTROL << 8);
-	req.wIndex = 1;
+	req.wIndex = cam_inst.stream_iface;
 	req.wLength = sizeof(probe);
 
-	sent = USBHCDControlTransfer(0, &req, cam_inst.device, (uint8_t *) &probe,
-			sizeof(probe),
-			cam_inst.device->sDeviceDescriptor.bMaxPacketSize0);
-	if (sent != sizeof(probe))
-	{
-		uvc_parsing_fault(1);
-	}
+	sent = USBHCDControlTransfer(0, &req, cam_inst.device, (uint8_t *) &res,
+			sent, cam_inst.device->sDeviceDescriptor.bMaxPacketSize0);
 
 	return 0;
 }
