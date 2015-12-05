@@ -134,6 +134,7 @@ extern uint32_t g_ui32SysClock;
 #define SPI_UDMA_TX_CHANNEL         UDMA_CH25_SSI1TX
 #define INT_SPI                     INT_SSI1
 
+
 #endif
 
 #if defined(CC3000_USE_BOOSTERPACK1)

@@ -45,6 +45,10 @@
 #include "dispatcher.h"
 #include "spi_version.h"
 #include "board.h"
+#include "src/ff.h"
+#include "src/diskio.h"
+
+
 
 //*****************************************************************************
 //
@@ -271,7 +275,7 @@ InitSysTick(void)
     //
     // Configure SysTick to occur 10 times per second and enable its interrupt.
     //
-    SysTickPeriodSet(g_ui32SysClock / SYSTICK_PER_SECOND);
+    SysTickPeriodSet(g_ui32SysClock / 100);
     SysTickIntEnable();
     SysTickEnable();
 }
@@ -290,6 +294,8 @@ SysTickHandler(void)
     //
     // Increment the tick counter.
     //
+    disk_timerproc();
+
     ulTickCount++;
 
     //

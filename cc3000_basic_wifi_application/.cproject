@@ -57,7 +57,7 @@
 									<listOptionValue builtIn="false" value="${workspace_loc:/cc3000_basic_wifi_application}"/>
 									<listOptionValue builtIn="false" value="${workspace_loc:/cc3000_basic_wifi_application/cc3000}"/>
 									<listOptionValue builtIn="false" value="${workspace_loc:\cc3000_basic_wifi_application\cc3000\drivers\ek-tm4c129}"/>
-									<listOptionValue builtIn="false" value="${workspace_loc:\cc3000_basic_wifi_application\ff11a}"/>
+									<listOptionValue builtIn="false" value="${workspace_loc:\cc3000_basic_wifi_application\fatfs}"/>
 									<listOptionValue builtIn="false" value="${workspace_loc:\cc3000_basic_wifi_application\usblib}"/>
 								</option>
 								<option id="com.ti.ccstudio.buildDefinitions.TMS470_15.9.compilerID.DEBUGGING_MODEL.1272027770" name="Debugging model" superClass="com.ti.ccstudio.buildDefinitions.TMS470_15.9.compilerID.DEBUGGING_MODEL" value="com.ti.ccstudio.buildDefinitions.TMS470_15.9.compilerID.DEBUGGING_MODEL.SYMDEBUG__DWARF" valueType="enumerated"/>
