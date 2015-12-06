@@ -91,7 +91,7 @@ static FIL fil;
 
 
 volatile int disconnect_happened;
-volatile int msp430Trigger = 1;
+volatile int msp430Trigger = 0;
 int offset;
 
 FATFS sdVolume;			// FatFs work area needed for each volume
@@ -924,29 +924,6 @@ int
 main(void) {
 
 
-			//SysCtlLDOSleepSet(SYSCTL_LDO_1_15V);
-			//SysCtlSleepPowerSet(SYSCTL_SRAM_STANDBY);
-			ROM_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);
-			ROM_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOD);
-			ROM_GPIODirModeSet(GPIO_PORTB_BASE, GPIO_PIN_5, GPIO_DIR_MODE_OUT);
-			ROM_GPIODirModeSet(GPIO_PORTD_BASE, GPIO_PIN_5, GPIO_DIR_MODE_OUT);
-			MAP_GPIOPadConfigSet(GPIO_PORTB_BASE, GPIO_PIN_5,
-										 GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD);
-			MAP_GPIOPadConfigSet(GPIO_PORTB_BASE, GPIO_PIN_5,
-													 GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD);
-			//initTrigger();
-			//GPIOPinWrite(GPIO_PORTB_BASE, GPIO_PIN_5, 0x00 );
-			//while(1){
-			//if(!msp430Trigger)
-			//{
-			//		GPIOPinWrite(GPIO_PORTB_BASE, GPIO_PIN_5, 0x00 );
-			//		ROM_SysCtlDelay(1000000);
-			//		GPIOPinWrite(GPIO_PORTB_BASE, GPIO_PIN_5, 0x20 );
-			//		ROM_SysCtlDelay(1000000);
-
-			//	ROM_SysCtlSleep();
-
-
 	volatile FRESULT iFResult;
 
 	g_ui32CC3000DHCP = 0;
@@ -1017,6 +994,19 @@ main(void) {
     	}
 
     }
+    /*int a;
+    a = socket(AF_INET, SOCK_DGRAM, 0);
+    while(1)
+    {
+    	sendto(a,
+    				"HelloHELLOHelloHELLOHelloHELLOHelloHELLOHelloHELLOHelloHELLOHelloHELLOHelloHELLOHelloHELLOHelloHELLOHelloHELLOHelloHELLOHelloHELLOHelloHELLOHelloHELLOHelloHELLOHelloHELLOHelloHELLOHelloHELLOHelloHELLO",
+    				200,
+    				0,
+    				&g_tSocketAddr,
+    				sizeof(sockaddr));
+
+    	//WIFI_sendUSBData("Hello", 5);
+    }*/
     while(1)
     {
     	//Sleep part of loop
@@ -1052,7 +1042,8 @@ main(void) {
 			if (usb_buf_len > 0)
 			{
 				WIFI_sendUSBData(usb_buf, usb_buf_len);
-				iFResult = f_open(&fil, "bbb.txt", FA_CREATE_ALWAYS|FA_WRITE);
+				iFResult = f_open(&fil, "bbb.txt", FA_OPEN_ALWAYS|FA_WRITE);
+				iFResult = f_lseek(&fil, f_size(&fil));
 				iFResult = f_write(&fil, usb_buf, usb_buf_len, &count_num);
 				iFResult = f_close(&fil);
 				usb_buf_len = 0;
