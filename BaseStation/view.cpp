@@ -52,9 +52,16 @@ int main(int argc, char **argv)
                         mjpeg.push_back(raw[j + 1]);
                         j++;
 
-                        Mat tmp = imdecode(mjpeg, 1);
-                        imshow("thingy", tmp);
-                        waitKey(100);
+                        try
+                        {
+                                Mat tmp = imdecode(mjpeg, 1);
+                                imshow("thingy", tmp);
+                                waitKey(100);
+                        }
+                        catch (const std::exception &e)
+                        {
+                                cout << "bad frame" << endl;
+                        }
 
                         mjpeg.clear();
 
