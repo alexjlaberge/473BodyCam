@@ -851,10 +851,20 @@ void initTrigger()
 	ROM_SysCtlPeripheralSleepEnable(SYSCTL_PERIPH_GPIOK);
 }
 
+#define USB_BUF_SIZE (128 * 1024)
+#define WIFI_PKT_HEADER_SIZE 8
+volatile uint8_t usb_buf[USB_BUF_SIZE];
+volatile size_t usb_buf_len = 0;
+volatile size_t usb_buf_i = 0;
 volatile uint8_t pkt_type = 0;
 volatile uint32_t pkt_offset = 0;
 void uvc_start_cb(void)
 {
+	if (usb_buf_len != 0)
+	{
+		return;
+	}
+
 	if (uvc_is_mjpeg())
 	{
 		pkt_type = WIFI_PKT_TYPE_MJPEG;
@@ -877,11 +887,6 @@ void uvc_start_cb(void)
 
 void uvc_end_cb(void);
 
-#define USB_BUF_SIZE (128 * 1024)
-#define WIFI_PKT_HEADER_SIZE 8
-volatile uint8_t usb_buf[USB_BUF_SIZE];
-volatile size_t usb_buf_len = 0;
-volatile size_t usb_buf_i = 0;
 void uvc_data_cb(const uint8_t *buf, size_t len)
 {
 	//*((uint16_t *) (usb_buf + 0)) = (uint16_t) len;
@@ -891,6 +896,11 @@ void uvc_data_cb(const uint8_t *buf, size_t len)
 	//pkt_offset += (uint32_t) len;
 
 	size_t i;
+
+	if (usb_buf_len != 0)
+	{
+		return;
+	}
 
 	for (i = 0; i < len && usb_buf_i < USB_BUF_SIZE; i++)
 	{
