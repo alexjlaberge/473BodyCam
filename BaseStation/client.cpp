@@ -102,8 +102,12 @@ void listener(Client *client)
 
             if (pkts.size() > 0 && pkt.getID() != pkts[0].getID())
             {
-                client->displayImage(assembleFrame(pkts));
-                client->setFrameID(pkts[0].getID());
+                Mat tmp = assembleFrame(pkts);
+                if (!tmp.empty())
+                {
+                    client->displayImage(tmp);
+                    client->setFrameID(pkts[0].getID());
+                }
                 pkts.clear();
             }
 
@@ -258,7 +262,14 @@ Mat assembleFrame(const vector<Packet> &pkts)
         cvtColor(frame, frame, CV_YUV2BGR_YUY2);
         break;
     case PacketType::MJPEG:
-        frame = imdecode(mjpeg, 1);
+        try
+        {
+            frame = imdecode(mjpeg, 1);
+        }
+        catch (const std::exception &e)
+        {
+            frame = Mat{};
+        }
         break;
     default:
         break;
