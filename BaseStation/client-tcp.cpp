@@ -1,4 +1,5 @@
 #include <arpa/inet.h>
+#include <fcntl.h>
 #include <netdb.h>
 #include <netinet/in.h>
 #include <poll.h>
@@ -59,6 +60,13 @@ void listener(Client *client)
         return;
     }
 
+    err = fcntl(sd, F_SETFL, O_NONBLOCK);
+    if (err < 0)
+    {
+        perror("failed to set non-blocking");
+        return;
+    }
+
     skaddr.sin_family = AF_INET;
     skaddr.sin_addr.s_addr = htonl(INADDR_ANY);
     skaddr.sin_port = htons(8888);
@@ -70,7 +78,7 @@ void listener(Client *client)
         return;
     }
 
-    err = listen(sd, 10);
+    err = listen(sd, 0);
     if (err < 0)
     {
         perror("Problem listening");
