@@ -78,6 +78,13 @@ void listener(Client *client)
         return;
     }
 
+    err = fcntl(sd, F_SETFL, O_NONBLOCK);
+    if (err < 0)
+    {
+        perror("failed to make socket non-blocking");
+        return;
+    }
+
     err = listen(sd, 0);
     if (err < 0)
     {
@@ -105,21 +112,35 @@ void listener(Client *client)
 
             int new_client = accept(sd, nullptr, nullptr);
 
+            fcntl(new_client, F_SETFL, O_NONBLOCK);
             pfd[1].fd = new_client;
             pfd[1].events = POLLIN;
             continue;
         }
 
-        err = recv(pfd[1].fd, buf, RECV_BUF_SIZE, 0);
-        if (err == -1)
+        while (true)
         {
-            perror("recv() failed");
-            break;
-        }
+            err = recv(pfd[1].fd, buf, RECV_BUF_SIZE, 0);
+            if (err == -1)
+            {
+                if (errno != EAGAIN && errno != EWOULDBLOCK)
+                {
+                    perror("recv() failed");
+                    return;
+                }
 
-        for (int i = 0; i < err; i++)
-        {
-            data.push_back(buf[i]);
+                break;
+            }
+            else if (err == 0)
+            {
+                cout << "connection closed" << endl;
+                break;
+            }
+
+            for (int i = 0; i < err; i++)
+            {
+                data.push_back(buf[i]);
+            }
         }
 
         try
