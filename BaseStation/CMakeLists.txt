@@ -22,6 +22,15 @@ target_link_libraries(client
     pkt
     )
 
+add_executable(client-tcp client-tcp.cpp)
+target_link_libraries(client-tcp
+    ${Boost_SYSTEM_LIBRARY}
+    ${OpenCV_LIBS}
+    Qt4::QtCore
+    Qt4::QtGui
+    pkt
+    )
+
 add_executable(dump dump.cpp)
 
 add_executable(examine examine.cpp)
