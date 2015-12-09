@@ -22,6 +22,21 @@ target_link_libraries(client
     pkt
     )
 
+# Image resources
+set(RESOLUTIONS "160x120" "320x240" "640x480" "1024x768")
+set(SVG_INPUTS "disconnected-4x3")
+foreach(input ${SVG_INPUTS})
+    foreach(res ${RESOLUTIONS})
+        add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${input}-${res}.png
+            COMMAND convert ${CMAKE_CURRENT_SOURCE_DIR}/${input}.svg -resize ${res} ${CMAKE_CURRENT_BINARY_DIR}/${input}-${res}.png
+            DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/${input}.svg
+            VERBATIM)
+        add_custom_target(res_${input}_${res}
+            SOURCES ${CMAKE_CURRENT_BINARY_DIR}/${input}-${res}.png)
+        add_dependencies(client res_${input}_${res})
+    endforeach()
+endforeach()
+
 add_executable(client-tcp client-tcp.cpp)
 target_link_libraries(client-tcp
     ${Boost_SYSTEM_LIBRARY}

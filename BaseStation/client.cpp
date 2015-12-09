@@ -19,6 +19,8 @@
 #include "pkt.hpp"
 
 #define RECV_BUF_SIZE 1024
+#define POLL_DELAY 100
+#define DISCONNECTED_IMAGE_TIMEOUT 50
 
 using bodycam::Client;
 using bodycam::Packet;
@@ -27,6 +29,7 @@ using bodycam::ParseError;
 using cv::Mat;
 using cv::Size;
 using cv::imdecode;
+using cv::imread;
 using std::cout;
 using std::endl;
 using std::lock_guard;
@@ -45,6 +48,7 @@ void listener(Client *client)
 {
     int sd;
     int err;
+    int ntimeouts{DISCONNECTED_IMAGE_TIMEOUT};
     struct sockaddr_in skaddr;
     char buf[RECV_BUF_SIZE];  
     vector<Packet> pkts;
@@ -74,12 +78,18 @@ void listener(Client *client)
     pfd.events = POLLIN;
     while (running)
     {
-        err = poll(&pfd, 1, 1000);
+        err = poll(&pfd, 1, POLL_DELAY);
         if (err == 0)
         {
-            cout << "polling......" << endl;
+            ntimeouts++;
+            if (ntimeouts > DISCONNECTED_IMAGE_TIMEOUT)
+            {
+                client->gotDisconnected();
+            }
+
             continue;
         }
+        ntimeouts = 0;
 
         err = recvfrom(sd, buf, RECV_BUF_SIZE, 0, nullptr, nullptr);
         if (err == -1)
@@ -163,6 +173,8 @@ Client::Client()
     center->setLayout(lay);
     setCentralWidget(center);
 
+    disconnected = imread("disconnected-4x3-160x120.png");
+
     future = QtConcurrent::run(listener, this);
 }
 
@@ -181,6 +193,11 @@ void Client::displayImage(const Mat &image)
     }
 
     emit gotNewImage();
+}
+
+void Client::gotDisconnected()
+{
+    displayImage(disconnected);
 }
 
 void Client::draw()

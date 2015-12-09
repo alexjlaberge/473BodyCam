@@ -24,6 +24,8 @@ public:
 
     void setFrameID(unsigned int id);
 
+    void gotDisconnected();
+
 	bool isRunning() const;
 
 
@@ -36,6 +38,7 @@ signals:
 
 private:
 	cv::Mat im;
+    cv::Mat disconnected;
 	std::mutex imLock;
 	QFuture<void> future;
 
