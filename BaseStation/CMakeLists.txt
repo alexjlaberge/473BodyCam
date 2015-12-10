@@ -56,6 +56,9 @@ add_executable(send send.cpp)
 add_executable(view view.cpp)
 target_link_libraries(view ${OpenCV_LIBS})
 
+add_executable(view-wifi view-wifi.cpp)
+target_link_libraries(view-wifi ${OpenCV_LIBS})
+
 enable_testing()
 
 add_executable(pkt_test pkt_test.cpp)
