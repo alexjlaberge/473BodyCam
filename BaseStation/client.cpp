@@ -34,6 +34,7 @@ using std::cout;
 using std::endl;
 using std::lock_guard;
 using std::mutex;
+using std::ofstream;
 using std::runtime_error;
 using std::string;
 using std::to_string;
@@ -42,13 +43,14 @@ using std::vector;
 volatile static bool running = true;
 
 void listener(Client *client);
-Mat assembleFrame(const vector<Packet> &pkts);
+Mat assembleFrame(const vector<Packet> &pkts, ofstream &out);
 
 void listener(Client *client)
 {
     int sd;
     int err;
     int ntimeouts{DISCONNECTED_IMAGE_TIMEOUT};
+    ofstream output_file{"data.raw"};
     struct sockaddr_in skaddr;
     char buf[RECV_BUF_SIZE];  
     vector<Packet> pkts;
@@ -112,7 +114,7 @@ void listener(Client *client)
 
             if (pkts.size() > 0 && pkt.getID() != pkts[0].getID())
             {
-                Mat tmp = assembleFrame(pkts);
+                Mat tmp = assembleFrame(pkts, output_file);
                 if (!tmp.empty())
                 {
                     client->displayImage(tmp);
@@ -228,7 +230,7 @@ void Client::quit()
     future.waitForFinished();
 }
 
-Mat assembleFrame(const vector<Packet> &pkts)
+Mat assembleFrame(const vector<Packet> &pkts, ofstream &out)
 {
     Mat frame;
     vector<uint8_t> raw;
@@ -275,12 +277,14 @@ Mat assembleFrame(const vector<Packet> &pkts)
     switch (pkts[0].getType())
     {
     case PacketType::UNCOMP:
+        out.write(reinterpret_cast<char *>(raw.data()), raw.size());
         frame = Mat(Size(160, 120), CV_8UC2, raw.data());
         cvtColor(frame, frame, CV_YUV2BGR_YUY2);
         break;
     case PacketType::MJPEG:
         try
         {
+            out.write(reinterpret_cast<char *>(mjpeg.data()), mjpeg.size());
             frame = imdecode(mjpeg, 1);
         }
         catch (const std::exception &e)
