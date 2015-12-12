@@ -321,12 +321,12 @@ by the way the officer should shoot his weapon.
 Our system is designed to use as little energy as possible by removing power to
 all video-related subsystems until video needs to be recorded. The video
 subsystem consists of a Texas Instruments TIVA
-% TODO page numbers on all references
-microcontroller\cite{tm4c1294ncpdt}, a Texas Instruments CC3000 Wi-Fi
-chip\cite[p.~6]{cc3000}, an SD card\cite[p.~19,23]{sd_standard}, and a USB
-camera\cite{usb_standard}. These parts draw the majority of the power, totalling
-% TODO
-mW.
+microcontroller\cite[p.~1880]{tm4c1294ncpdt}, a Texas Instruments CC3000 Wi-Fi
+chip\cite[p.~6]{cc3000}, an SD card\cite[p.~19,23]{sd_standard}, a EM-506 GPS
+unit\cite[p.~10]{em506}, and a USB camera\cite[p.~245]{usb_standard}. These
+parts draw the majority of the power, totalling 4290.4 mW in the worst case.
+The rest of the system draws a relatively small 131.4 mW. The individual worst
+case power draws are given in Table \ref{tab:worst_case_power}.
 
 % TODO Cite the specification sheets
 \begin{table}[h!]
@@ -334,19 +334,20 @@ mW.
     \caption{Worst Case Power Consumption}
     \begin{tabular}{lrrr}
         \textbf{Device} & \textbf{Voltage (V)} & \textbf{Current (mA)} & \textbf{Power (mW)}\\
-        TIVA & 3.3 & 133.4mA & 440.22\\
-        Camera & 5.0 & 500 & 2500\\
-        GPS & 0 & 0 & 0.3\\ % TODO
+        TIVA & 3.3 & 133.4 & 440.2\\
+        Camera & 5.0 & 500.0 & 2500.0\\
+        GPS & 5.0 & 55.0 & 275.0\\
         Microphone & 3.3 & 0.5 & 1.0\\
-        RFID Reader & 3.3 & 35 & 115.5\\
-        SD Card & 3.3 & 100 & 330\\ % TODO Double check
-        MSP430 & 3.3 & 4.5 & 0.1\\
-        CC3000 & 3.6 & 207 & 745.2\\
+        RFID Reader & 3.3 & 35.0 & 115.5\\
+        SD Card & 3.3 & 100.0 & 330.0\\
+        MSP430 & 3.3 & 4.5 & 14.9\\
+        CC3000 & 3.6 & 207.0 & 745.2\\
         \hline
         \textbf{Totals} & & & \textbf{Power (mW)}\\
-        Idle & & & 4.8\\ % TODO
-        Recording & & & 1.5\\ % TODO
+        Idle & & & 131.4\\
+        Recording & & & 4421.8\\
     \end{tabular}
+    \label{tab:worst_case_power}
 \end{table}
 
 In an 8 hour police shift, our device can record up to one half hour of video,

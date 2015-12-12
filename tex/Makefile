@@ -14,4 +14,4 @@ all : final_report.pdf proposal.pdf
 %.pdf : %.svg
 	convert $< $@
 
-final_report.pdf : logo.pdf
+final_report.pdf : logo.pdf references.bib
