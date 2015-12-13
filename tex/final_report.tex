@@ -13,7 +13,8 @@
 
 \begin{document}
 
-\setcounter{secnumdepth}{0}
+\setcounter{secnumdepth}{1}
+\setcounter{tocdepth}{2}
 
 \title{\includegraphics[height=0.3\textheight]{logo}}
 \date{}
@@ -62,197 +63,55 @@ that we could not have provided a much better final product.
 
 At the design expo, we demonstrated our project, shown in Figure
 \ref{fig:installation}.  Our project is a self-contained, enclosed product
-which wirelessly sent camera footage to a laptop at about 1 \gls{fps}. The
-product saved camera footage to an SD card at a more reasonable 10 \gls{fps}.
-The success of this project was in question until nearly the very end, due to
-the fact that the \gls{usb} protocol was a much heartier challenge than
-originally anticipated. The team met most other milestone objectives with
+which wirelessly sends camera footage to a laptop at about 1 \gls{fps}. The
+product saved camera footage to a \gls{sd} card at a more reasonable 10
+\gls{fps}.  The success of this project was in question until nearly the very
+end, due to the fact that the \gls{usb} protocol was a much heartier challenge
+than originally anticipated. The team met most other milestone objectives with
 flying colors. Given this, and the fact that the final product was what we had
 proposed (even with some weaker specifications), our project should be deemed a
 success and we are happy with the result.
 
 \section{Description}
-Every year around 500 people are killed by law enforcement personnel. In 2015,
-especially, people are wondering how many of these deaths were preventable. One
-classic way to ensure that all protocols were being followed has been a police
-body camera. However, these are often expensive (\$800 - \$1200 each
-\cite{cam}) and have serious privacy concerns for the police officers. If the
-body cameras are always on, you might record private moments that an officer
-does not want his superiors seeing. However, if we give the officer a way to
-turn it on and off and police abuse may start occurring. The proposed device
-would be an upgrade to the current system: a way to measure and record police
-weapon usage as well as a way to keep track of the officers and their behavior
-when weapons are pulled without violating their privacy.
+Every year around 500 people are killed by law enforcement personnel, and many
+people are wondering how many of these deaths were justified. One classic way
+to ensure that all protocols were being followed has been a police body camera.
+However, these are often expensive (\$800 - \$1200 each\cite{cam}) and have
+serious privacy concerns for the police officers. If the body cameras are
+always on, it might record personal moments that do not need to be seen.
+However, if we give the officer a way to turn it on and off, police may tamper
+with evidence that could convict them. Benson discusses the various incentives
+at work that determine which arrests police are likely to
+make\cite[ch.~6]{enterprise_of_law}; similarly, police have an incentive to use
+their weapons to stay alive often since they are rarely prosecuted in cases in
+which they use lethal force\cite{no_conviction_1,no_conviction_2}. This is not
+to say that police officers are bad, but these incentives can be very strong
+and may override their sense of duty.
 
-Compared to the competition, our product will be cheaper and contain better
-features to ensure civilian and officer safety while maintaining privacy. This
-product, as shown in Figure \ref{fig:installation},  will see use because it
-hits a middle ground that city officials and law enforcement officials can
-agree upon. It will be cost-effective, while also being robust and hopefully
-life-saving.
+\subsection{Objectives}
+When purchasing body cameras, police departments must analyze the costs and
+benefits.  The costs of available systems is high; in addition to the high cost
+of current units\cite{cam}, storing the amount of footage from body cameras
+that are always on represents a significant challenge\cite{store1,store2}. In
+addition, many officers fear for their privacy\cite{officer_privacy}. Since the
+camera knows when the officer is in danger, backup may be automatically
+dispatched before the officer has time to call for it. Finally, a police
+department may purchase third-party streaming attachments to stream video to a
+third-party cloud system to minimize liability and to ensure the public that
+corruption is not likely\footnote{We have not seen any articles on this
+concept, although contracting liability to a third party is common.}.  Our
+product, shown in Figure \ref{fig:installation}, currently fulfills all of the
+above objectives at a prototype level.  It will be priced in the same range as
+currently available body cameras, but increases the safety of both officers and
+the public while reducing costs.
 
-This design needs to be cheaper to produce than current body-cam systems as
-well as being accurate in how and why it records data (in a manner which keeps
-officers' private information private). We do not want to capture the call they
-have in the squad car with their wives, but we do want to capture the stop
-where a suspect gets out of their car and attempts to attack the officer.
-Officers will be more likely to use it for these features. In addition, storing
-the amount of footage from body cameras that are always on represents a significant
-challenge for police departments\cite{store1,store2}.
+\subsection{System Description}
 
-Some of the solutions that are already on the market include many more features
-than are feasible for the scope of this project. Wolfcom has a product called
-the 3rd Eye\cite{third_eye} which has a snapshot button, a screen for seeing
-what the camera sees, and HDMI support. However, it comes at a steep price
-point of \$475.  However, it does not include streaming and many of the
-features seem to be those of a swiss-army-knife of cameras rather than for
-stopping police brutality. Also, officers have complete control over the camera
-and therefore could abuse the technology. Our solution would have the same
-resolution of 1080p at 30fps, while leaving the control up to the environment
-and would provide instant feedback to the police station about the officer's
-behaviour and safety.
+\subsection{Trigger System}
 
-Both of our proposed solutions require a body-mounted camera and a pack located
-on the user's hip that interfaces with both the camera and a possible custom
-holster. These two designs differ on how they process and store the
-incoming data.
+\subsection{Video System}
 
-In one of the proposed designs, the camera will take a picture once the gun has
-been brought up to be fired, as well as taking pictures on each trigger pull.
-These pictures will be sent back to the pack on the user's hip and then
-wirelessly streamed over to the computer within the squad car. 
-
-In the other proposed design, the camera will start recording video once the
-gun has been removed from the holster and will send video to be stored locally
-on the officer's hip pack that will be streamed over when a reliable connection
-can be established.
-
-In both designs, we will use a GPS device for tracking the officer as well as
-synchronizing the video or images with the current time, which is included in
-the GPS protocol.
-
-One way we could tell if the gun is being brought up to be fired will be with a
-gyroscope attached to the weapon. An alternative to this option would be a
-holster mechanism which will tell if a gun has been pulled by checking if an
-RFID tag can be read. This RFID tag will have a range such that it only reads
-the tag if the gun when it is in the holster. If it cannot be read, the gun is
-not holstered. The video feed would then begin to record.
-
-The tradeoffs of each design are fairly simple. For the design that takes
-pictures, storage would be much easier as would wireless transmission of the
-pictures. This design would probably not be as power hungry either, as
-streaming data will be a huge consumer of battery. However, if the picture is
-blurry or we got a picture at a point where the police officer is not facing
-the suspect, we are out of luck. We also would not likely have synchronized
-sound. The video design, on the other hand, will be much harder to implement
-due to the streaming of video. We would probably need a Linux-based (or other
-higher-level ``RTOS'') processor to interface with Wi-Fi as well as to make
-streaming easier.  This would be a pain to wake up every time we needed to
-start recording on the camera. Due to the fact that we would probably always
-need to keep the camera on but not recording, power consumption becomes one of
-the bigger problems.  Between constantly keeping the camera on and the amount
-of power required to run an RFID reader and microphone algorithm, we could run
-into many issues trying to power our device. An alternative would be to
-dedicate a processor to this and write an interface which can be on, but not as
-power-intensive.  Some of the difficulties of implementing both designs will be
-discussed next.
-
-\subsection{Snapshot Solution}
-The chief implementation difficulty raised in this solution is mechanically
-determining a trigger pull. Gathering, saving, and streaming a small set of
-pictures requires much less processing power than video, but may not be as useful
-as evidence in the courtroom. Adding streaming capabilities in addition to a
-camera on the gun would most likely add enough bulk to the gun that it would
-interfere with the ability to handle it.
-
-\subsection{Video Feed Solution}
-Any device that streams video consumes a large portion of processing and power.
-This would be a challenge for a device that needs to be smaller than 120 x 70 x
-20 mm to sit on someone's belt. Also, we would have to interface with a video
-encoder/decoder in order to stream efficiently, and increasing the number of
-devices can always lead to problems. This would likely require a separate
-processor dedicated solely for this processing, as it would have to be on only
-when the video is being recorded and sent in order to conserve power. This
-means we would have to interface between processors in addition to the other
-issues.
-
-\subsection{Camera Mount Solution}
-Most of mounting in the industry use clips to attach a camera on a body. Among
-different clipping mounts, positions where they are clipped to vary. We have
-found three common positions where a camera can be clipped to: glasses, chest,
-and shoulder. After comparing pros and cons of each, we have decided to use the
-clip mounted to shoulder as our mount type as it has moderate accuracy and
-stability without much obstruction. The comparisons of these options are
-summarized in the table below.
-
-\begin{table}[h!]
-    \centering
-    \caption{Comparison of different types of camera mounts}
-    \begin{tabular}{|l|l|c|}
-        \hline
-        \textbf{Mount Type} & \textbf{Pros and Cons} & \textbf{Mounted Image}\\
-        \hline
-        & & \\
-        Sunglasses Clip & Pros: & \multirow{8}{*}{\includegraphics[width=0.3\textwidth]{glasses_mount}}\\
-                        & - Camera direction corresponds to LOS & \\
-                        & - Most accurate in camera's view & \\
-                        & - Stable & \\
-                        & & \\
-                        & Cons: & \\
-                        & - Has to wear glasses & \\
-                        & - Can be disturbing & \\
-        & & \\
-        \hline
-        & & \\
-        Chest Clip & Pros: & \multirow{8}{*}{\includegraphics[width=0.3\textwidth]{chest_mount}}\\
-                   & - Not disturbing & \\
-                   & & \\
-                   & Cons:  & \\
-                   & - View can be blocked by officer' arms & \\
-                   & - Can be unstable upon active movement  & \\
-                   & & \\
-                   & & \\
-                   & & \\
-        \hline
-        & & \\
-        Shoulder Clip & Pros: & \multirow{7}{*}{\includegraphics[width=0.3\textwidth]{shoulder_mount}}\\
-        (selected) & - Moderately accurate in camera's view & \\
-                   & - View is unlikely to be blocked & \\
-                   & & \\
-                   & Con: & \\
-                   & - Can be unstable upon active movement  & \\
-                   & & \\
-        \hline
-    \end{tabular}
-    \label{tab:cam_mount}
-\end{table}
-
-\subsection{Comparison with Other Products}
-Table \ref{tab:fin_comp} contains a feature comparison between our finished
-product with other body cameras that are currently available.
-
-\begin{table}[h!]
-    \centering
-    \caption{Comparison of finished products}
-    \begin{tabular}{llll}
-        \textbf{Name} & Team Edgy & PatrolEyes SC-DVAI & Wolfcom Vision\\
-        \textbf{Price} & \textasciitilde \$300 & \$449 & \$249\\
-        \textbf{Video Capacity} & 32 GB & 32 GB & 32 GB\\
-        \textbf{Video Resolution} & 1080p & 1080p & 1080p\\
-        \textbf{Video Format} & MOV, MPEG-4 & AVI & MOV, MPEG-4\\
-        \textbf{Photo Resolution} & 12M & 16M, 12M, 5M, 3M & 16M, 12M, 8M, 5M, 3M\\
-        \textbf{Standby Time} & 10 hours & 35 hours & $>$ 5 days\\
-        \textbf{Remote Control} & No & Yes & No\\
-        \textbf{Field of View} & $120^o$ & $120^o$ & $120^o$\\
-        \textbf{Mass} & 100g & 151g & 63g\\
-        \textbf{Infrared Camera} & No & Yes & No\\
-        \textbf{Dimensions} & 120 x 70 x 20 mm & DVR: 79 x 51 x 22 mm & 74 x 38 x 15 mm\\
-                            & & Camera: 55 x 48 x 38 mm & \\
-    \end{tabular}
-    \label{tab:fin_comp}
-\end{table}
-
-\section{Implementation Issues}
+% TODO Move this stuff around
 The device revolves around two main parts, the belt enclosure and the camera.
 The holster sensor will be an RFID reader which, when it cannot read the RFID
 tag on the weapon, will send a signal to the main processor. This processor
@@ -345,7 +204,7 @@ by the way the officer should shoot his weapon.
     \caption{High Level Overview}
 \end{figure}
 
-\section{Power System Design}
+\subsection{Power System}
 Our system is designed to use as little energy as possible by removing power to
 all video-related subsystems until video needs to be recorded. The video
 subsystem consists of a Texas Instruments TIVA
@@ -385,7 +244,7 @@ lithium-polymer battery was chosen due to the high energy density and ability
 to recharge. Lithium-polymer batteries can be dangerous, especially when
 exposed to forceful strikes; a tough battery case will mitigate this danger.
 
-\section{Mechanical Design}
+\subsection{Mechanical Design}
 The mechanics of this design revolve around one enclosure that contains the PCB
 that houses the MSP430, GPS, RTC, RFID reader, an exposed switch, and a
 microphone. The RFID reader will have an antenna coming out of the enclosure
@@ -405,33 +264,29 @@ camera mounted on the shoulder is key, because something heavy on a shoulder
 could knock his aim off and potentially put the officer in a dangerous
 situation. 
 
-\section{Way Forward}
-In order to implement our design, we will adhere as closely as possible to the
-Gantt chart in Figure \ref{fig:gantt}. The things that are most likely to go
-wrong will be developing a streaming driver for video as well as developing the
-RFID controller. Our schedule leaves approximately a week to two weeks for
-``final manufacturing'', which will be implementing our enclosures and possibly
-researching manufacturability and production cost. Manufacturing an enclosure
-for our prototype will be fairly simple, because Alec has a lot of experience
-working with the 3D printing process. In those few weeks, testing could occur
-on any unfinished section of the project. 
-
-\begin{landscape}
-    \thispagestyle{empty}
-
-    \begin{figure}[h!]
-        \centering
-        \includegraphics[width=1.2\textwidth]{gantt}
-        \caption{Gantt chart}
-        \label{fig:gantt}
-    \end{figure}
-\end{landscape}
+\subsection{Conclusion}
+Our project proposes an optimal scheme to satisfy questions of unethical
+conduct by police officers. Even though police officers maintain the right to
+apprehend suspects by force, many suspect officers of abuse of their power.
+Righteousness of the officers’ actions can not be judged without tangible
+evidence of incidents. Having videos recorded only when an incident occurs will
+provide tangible evidence to judge whether officers’ actions were just, without
+violating officers’ privacy. One of the difficulties is that it is difficult to
+precisely distinguish a moment to start recording a video well enough to
+encompass whole situation. Achieving live streaming is optimal but will be
+challenging to get done in the given scope of the project. However, once our
+proposed function is achieved, it will open many possibilities to extend its
+uses and functionalities. When successful, this project will provide optimal
+functionality for the use of a wearable body camera in a tactical application. 
 
 \section{Milestones, Schedule, and Budget}
 Most of this project was on schedule from the beginning. The only problem we
 really ran into was getting our final piece of the puzzle in place: decoding
 our video. Once we that was working, the remainder of the project was quickly
-integrated and a full feature prototype was able to be tested. 
+integrated and a full feature prototype was able to be tested. Our original
+schedule is shown in Appendix \ref{app:gantt}. All deadlines were met except
+for the Camera Driver, which was not in testing until late November and
+finished until early December.
 
 Our original budget was around \$312.93 and we spent TODO. % TODO
 
@@ -522,9 +377,9 @@ The first mistake our group made was to create specifications and requirements
 without first researching to a point where we would be able to realistically
 quantify them. Instead, we had a tendency to create requirements based on the
 ideal case - what we thought would be nice to have or a good goal to have
-before us. This lack of research is reflected in the part choices we made (ie
+before us. This lack of research is reflected in the part choices we made (i.e.
 the CC3000), and really propagated throughout our entire project. The cliché
-“measure twice, cut once” comes to mind with regards to this situation.
+``measure twice, cut once'' comes to mind with regards to this situation.
 
 Also, we learned that most of tasks require steep learning curve, and it is
 very hard for other members to participate in tasks that has already made
@@ -533,7 +388,7 @@ given tasks had difficulty in catching up the already made progress but time
 was limited for the original member of the task to walk through the progress
 that he had already made. This resulted in some of team members doing more
 works than the others. We learned that it is important to distribute works
-correctly and that all team members keep track of each other’s tasks.
+correctly and that all team members keep track of each other's tasks.
 
 An element of our project that really went well was the choice of development
 board and process we used to convert development board to custom circuit board.
@@ -545,11 +400,11 @@ worked almost immediately, with little software debugging.
 
 The design of the enclosure was an afterthought, and the project appeared to be
 poorly integrated because of this. The enclosure was bright blue, and very
-noticeably duct-taped to the officer’s holster during the design expo. Another
+noticeably duct-taped to the officer's holster during the design expo. Another
 reason for the poor enclosure design was that the PCB was routed with the sole
 constraint that it should work, and no thought was given to a good form factor
 for packaging. In the future, care should be taken to route the circuit
-board(s) in such as way as to integrate well with the officer’s belt and
+board(s) in such as way as to integrate well with the officer's belt and
 holster.
 
 Overall, if we could send a message to ourselves before the project started, it
@@ -624,7 +479,7 @@ it with the Qt Toolkit. Finally, Alec was responsible for the power system
 design and reviewing the circuit schematics and layouts produced by Jake.
 
 Alex was responsible for the main control loop for the TIVA recording software,
-which included integrating his WiFi and GPS drivers in with Alec’s USB driver.
+which included integrating his WiFi and GPS drivers in with Alec's USB driver.
 He optimized the TI library for the WiFi module to get the fastest throughput
 possible on the CC3000 by removing unnecessary delays and making the sockets
 nonblocking. Alex also wrote the first iteration of base station socket code
@@ -671,24 +526,40 @@ power, this number does appear to be very rough. However, with this cost of
 manufacturing, such a product could be very competitive in this market, where
 prices can often be found near the \$1000 range.
 
-\section{Conclusion}
-Our project proposes an optimal scheme to satisfy questions of unethical
-conduct by police officers. Even though police officers maintain the right to
-apprehend suspects by force, many suspect officers of abuse of their power.
-Righteousness of the officers’ actions can not be judged without tangible
-evidence of incidents. Having videos recorded only when an incident occurs will
-provide tangible evidence to judge whether officers’ actions were just, without
-violating officers’ privacy. One of the difficulties is that it is difficult to
-precisely distinguish a moment to start recording a video well enough to
-encompass whole situation. Achieving live streaming is optimal but will be
-challenging to get done in the given scope of the project. However, once our
-proposed function is achieved, it will open many possibilities to extend its
-uses and functionalities. When successful, this project will provide optimal
-functionality for the use of a wearable body camera in a tactical application. 
+\section{Parts}
+% TODO Table of parts with prices
+% TODO Table of part prices for mass production
 
 \newpage
 
 \bibliographystyle{plain}
 \bibliography{references}
+
+\newpage
+
+\appendix
+
+\begin{landscape}
+    \section{Gantt Chart}
+    \label{app:gantt}
+    \thispagestyle{empty}
+
+    \begin{figure}[h!]
+        \centering
+        \includegraphics[width=1.1\textwidth]{gantt}
+        \caption{Gantt chart}
+        \label{fig:gantt}
+    \end{figure}
+\end{landscape}
+
+\newpage
+
+\section{Software Interfaces}
+% TODO
+
+\newpage
+
+\section{PCB Layout}
+% TODO
 
 \end{document}
