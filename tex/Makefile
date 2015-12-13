@@ -5,16 +5,19 @@ BIBC := bibtex
 all : final_report.pdf proposal.pdf
 
 clean :
-	rm -f *.aux *.bbl *.blg *.log *.out final_report.pdf proposal.pdf *.toc
+	rm -f *.aux *.bbl *.blg *.glo *.ist *.log *.out final_report.pdf proposal.pdf *.toc
 
 %.pdf : %.tex
 	$(LATEXC) $<
 	$(BIBC) $(patsubst %.tex, %, $<)
 	$(LATEXC) $<
 	$(LATEXC) $<
-	rm -f *.aux *.bbl *.blg *.log *.out *.toc
+	rm -f *.aux *.bbl *.blg *.glo *.ist *.log *.out *.toc
 
 %.pdf : %.svg
 	convert $< $@
 
-final_report.pdf : logo.pdf references.bib
+final_report.pdf : \
+	glossary.tex \
+	logo.pdf \
+	references.bib

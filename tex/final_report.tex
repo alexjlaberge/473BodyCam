@@ -7,6 +7,10 @@
 \usepackage{multirow}
 \usepackage{pdflscape}
 
+\usepackage{glossaries}
+\include{glossary}
+\makeglossaries
+
 \begin{document}
 
 \title{\includegraphics[height=0.3\textheight]{logo}}
@@ -31,7 +35,42 @@
 
 \newpage
 
+% TODO Remove cite in summary - only detailed sections should have citations
 \section{Summary}
+Increasingly, police officers around the country are beginning to wear police
+body cameras to ensure the safety of both themselves and the public. However,
+current body camera solutions leave some questions about the tradeoff between
+security and privacy. The US Justice Department has even begun asking law
+enforcement agencies to construct and pilot programs which create policies to
+manage this tradeoff\cite{officer_privacy}. Our product attempts to circumvent
+policy concerns by creating a smarter body camera which intelligently decides
+when to record footage by triggers including both environmental stimuli and
+manual control.  Our project can be deemed a success, in the sense that we
+demonstrated a proof of concept. Our team created a police body camera that
+records based on the firearm being unholstered, loud noises, or an officer
+controlled manual switch.  The quality of the recording was not quite the
+quality we had been hoping for, but given the hardware we chose, we believe
+that we could not have provided a much better final product. 
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.9\textwidth]{installation}
+    \caption{Overview of Installation}
+    \label{fig:installation}
+\end{figure}
+
+At the design expo, we demonstrated our project, shown in
+\ref{fig:installation}.  Our project is a self-contained, enclosed product
+which wirelessly sent camera footage to a laptop at about 1 \gls{fps}. The
+product saved camera footage to an SD card at a more reasonable 10 \gls{fps}.
+The success of this project was in question until nearly the very end, due to
+the fact that the \gls{usb} protocol was a much heartier challenge than
+originally anticipated. The team met most other milestone objectives with
+flying colors. Given this, and the fact that the final product was what we had
+proposed (even with some weaker specifications), our project should be deemed a
+success and we are happy with the result.
+
+\section{Description}
 Every year around 500 people are killed by law enforcement personnel. In 2015,
 especially, people are wondering how many of these deaths were preventable. One
 classic way to ensure that all protocols were being followed has been a police
@@ -46,18 +85,10 @@ when weapons are pulled without violating their privacy.
 
 Compared to the competition, our product will be cheaper and contain better
 features to ensure civilian and officer safety while maintaining privacy. This
-product, as shown in Figure \ref{fig:installation},  will see use because it hits a middle ground that city officials and
-law enforcement officials can agree upon. It will be cost-effective, while also
-being robust and hopefully life-saving.
-
-\begin{figure}[h!]
-    \centering
-    \includegraphics[width=0.9\textwidth]{installation}
-    \caption{Overview of Installation}
-    \label{fig:installation}
-\end{figure}
-
-\section{Description}
+product, as shown in Figure \ref{fig:installation},  will see use because it
+hits a middle ground that city officials and law enforcement officials can
+agree upon. It will be cost-effective, while also being robust and hopefully
+life-saving.
 
 This design needs to be cheaper to produce than current body-cam systems as
 well as being accurate in how and why it records data (in a manner which keeps
@@ -126,7 +157,6 @@ power-intensive.  Some of the difficulties of implementing both designs will be
 discussed next.
 
 \subsection{Snapshot Solution}
-
 The chief implementation difficulty raised in this solution is mechanically
 determining a trigger pull. Gathering, saving, and streaming a small set of
 pictures requires much less processing power than video, but may not be as useful
@@ -135,7 +165,6 @@ camera on the gun would most likely add enough bulk to the gun that it would
 interfere with the ability to handle it.
 
 \subsection{Video Feed Solution}
-
 Any device that streams video consumes a large portion of processing and power.
 This would be a challenge for a device that needs to be smaller than 120 x 70 x
 20 mm to sit on someone's belt. Also, we would have to interface with a video
@@ -147,7 +176,6 @@ means we would have to interface between processors in addition to the other
 issues.
 
 \subsection{Camera Mount Solution}
-
 Most of mounting in the industry use clips to attach a camera on a body. Among
 different clipping mounts, positions where they are clipped to vary. We have
 found three common positions where a camera can be clipped to: glasses, chest,
@@ -224,7 +252,6 @@ product with other body cameras that are currently available.
 \end{table}
 
 \section{Implementation Issues}
-
 The device revolves around two main parts, the belt enclosure and the camera.
 The holster sensor will be an RFID reader which, when it cannot read the RFID
 tag on the weapon, will send a signal to the main processor. This processor
@@ -358,7 +385,6 @@ to recharge. Lithium-polymer batteries can be dangerous, especially when
 exposed to forceful strikes; a tough battery case will mitigate this danger.
 
 \section{Mechanical Design}
-
 The mechanics of this design revolve around one enclosure that contains the PCB
 that houses the MSP430, GPS, RTC, RFID reader, an exposed switch, and a
 microphone. The RFID reader will have an antenna coming out of the enclosure
@@ -379,7 +405,6 @@ could knock his aim off and potentially put the officer in a dangerous
 situation. 
 
 \section{Way Forward}
-
 In order to implement our design, we will adhere as closely as possible to the
 Gantt chart in Figure \ref{fig:gantt}. The things that are most likely to go
 wrong will be developing a streaming driver for video as well as developing the
@@ -401,34 +426,71 @@ on any unfinished section of the project.
     \end{figure}
 \end{landscape}
 
-\section{Milestones}
+\section{Milestones, Schedule, and Budget}
+Most of this project was on schedule from the beginning. The only problem we
+really ran into was getting our final piece of the puzzle in place: decoding
+our video. Once we that was working, the remainder of the project was quickly
+integrated and a full feature prototype was able to be tested. 
+
+Our original budget was around \$312.93 and we spent TODO. % TODO
 
 \subsection{Milestone 1}
+\subsubsection{GPS and RTC Implementation and Verification}
+Getting an early GPS parser was one of the easier parts of the project, while
+it was also one of the more unnecessary parts for a working demo. GPS was done
+early, but it turned out not to be very vital to the success of the project.
 
-Milestone 1 will be on October 20, where we should have large chunks of many of
-the parts of our project done. By this time, we want our MSP430 to generate a
-record signal based on volume levels detected by a microphone. The record
-signal will also be set by a switch that we interface to, and the RFID reader
-will hopefully be close to done.We should have the camera recording and sending
-data back to the TIVA, as well as a demo for sending data across a Wifi
-connection. The Wifi demo might be as simple as sending one packet with a
-string in it, but we will have the connection and that will give us a good
-platform for sending over the encoded video data soon after. The MSP430 will
-also be reading in GPS and RTC data at a reasonable rate. This data can be
-checked via the internet by typing in the coordinates we receive from the
-device and checking the time with a clock. 
+\subsubsection{Audio and Manual Trigger Implementation and Verification}
+This was a very early victory that helped the trigger side of our project get
+done as quickly as it did. We had a working prototype for the MSP430 trigger
+processor about a week before the first milestone and we had a final version a
+few weeks later, which ensured that once we got all of the TIVA video
+processing done, we could easily integrate the two parts together.
+
+\subsubsection{Wi-Fi Testing}
+Originally we had a UART-based WiFi module that did not have a great datasheet
+or any sort of support on the internet. With this in mind and the fact that it
+seemed to overheat easily, we looked for a quick replacement. What we found was
+the CC3000, which boasted a 4Mbps data transfer rate over TCP. Having a little
+bit of background in networking, we figured UDP would be even faster so we
+locked this in as our choice and had a quick demo in which we sent packets over
+to a host computer.
+
+\subsubsection{RFID in Development}
+We managed to find a reliable RFID radio that had a card-present line which
+suited our needs very well. The development on this part was basically
+nonexistent, so that the trigger processing reached completion even quicker. We
+had the RFID part completely working by the time this milestone came around.
+
+\subsubsection{Video Data Encoded}
+Video data was the slowest part of our project to develop, since writing a USB
+device driver is no small task. We did not manage to see video until around a
+month and a half after the first milestone. This milestone portrayed both our
+hearty ambition and innocent ignorance.
 
 \subsection{Milestone 2}
+\subsubsection{Working Full-Featured Prototype}
+This was definitely the issue that kept us behind on our project. We did not
+have verified data by the second milestone, so it was difficult to test
+anything. Our team had all of the other parts done, like a WiFi driver that
+could send at a reasonable speed and all of the trigger processing in its final
+state, but without being able to see video we were not sure whether or not the
+project would be completed on time.
 
-Milestone 2 will be on November 4, where we should have the breadboard
-prototype completely finished, with video being recorded and streamed over to
-the Pi whenever there is a loud noise or the gun is removed from the holster,
-as well as if the switch is toggled. All of this will be on a breadboard
-prototype, with the PCB having been designed and shipped.  We can all start
-testing and designing enclosures, as well as populating and testing our PCB
-design.
+\subsubsection{PCB is Shipped}
+We overestimated the time required to get a PCB out so by the time the second
+milestone came around we had already populated our PCB and begun testing.
+Luckily for us, we had plenty of time to order a second version of a PCB which
+addressed problems we had like an incorrect crystal, an unorderable SD card
+reader, and a few small on-board revisions we needed to make. Getting this done
+as early as we did definitely helped us stay on track.
 
-\section{Budget and Bill of Materials}
+\subsubsection{Enclosure Designed}
+This goal was also underestimated. Our team had a first version enclosure
+printed that helped us form the next and final version that we have on the
+final prototype. Having this milestone completed also helped us stay on track.
+
+\subsection{Budget and Bill of Materials}
 
 \begin{table}[h!]
     \centering
@@ -450,18 +512,165 @@ design.
     \end{tabular}
 \end{table}
 
-\section{Demoables for Design Expo}
+\section{Lessons Learned}
+When we reflect on the outcome of our project, there are a few points which we
+wish we would have known before the project started, and so are points we have
+since learned. 
 
-Ideally, we will have a base station (a laptop or a Pi) to simulate the squad
-cars laptop. The Pi will be a Wifi access point that our wearable will connect
-to. From that connection we get a video stream whenever the gun is pulled from
-the holster or whenever someone screams or yells near the microphone. We could
-also show the hip pack that is tamper-proof. When the gun is not holstered, it
-will only show GPS data from the officer’s pack. This could involve possibly
-creating a halfway-decent UI, if we have time.
+The first mistake our group made was to create specifications and requirements
+without first researching to a point where we would be able to realistically
+quantify them. Instead, we had a tendency to create requirements based on the
+ideal case - what we thought would be nice to have or a good goal to have
+before us. This lack of research is reflected in the part choices we made (ie
+the CC3000), and really propagated throughout our entire project. The cliché
+“measure twice, cut once” comes to mind with regards to this situation.
+
+Also, we learned that most of tasks require steep learning curve, and it is
+very hard for other members to participate in tasks that has already made
+significant progress. Other members trying to help incomplete tasks after their
+given tasks had difficulty in catching up the already made progress but time
+was limited for the original member of the task to walk through the progress
+that he had already made. This resulted in some of team members doing more
+works than the others. We learned that it is important to distribute works
+correctly and that all team members keep track of each other’s tasks.
+
+An element of our project that really went well was the choice of development
+board and process we used to convert development board to custom circuit board.
+The development board had a great deal of pinouts and functionality that made
+the schematic creation process easy. We were able to test on the development
+board using the exact same pins and peripherals that would later be used on the
+PCB. This meant that once the hardware was ready and correct, the software
+worked almost immediately, with little software debugging.
+
+The design of the enclosure was an afterthought, and the project appeared to be
+poorly integrated because of this. The enclosure was bright blue, and very
+noticeably duct-taped to the officer’s holster during the design expo. Another
+reason for the poor enclosure design was that the PCB was routed with the sole
+constraint that it should work, and no thought was given to a good form factor
+for packaging. In the future, care should be taken to route the circuit
+board(s) in such as way as to integrate well with the officer’s belt and
+holster.
+
+Overall, if we could send a message to ourselves before the project started, it
+would be to continue to work hard from the beginning and to not underestimate
+the complexity from USB. Our group did a great job working a steady,
+substantial amount throughout the life of the project. We did end up having to
+work more towards the end of the project, but this was because we had
+underestimated the amount of work the USB driver would require, and this
+delayed all parts, including work on the PCB. So, if we could go back and
+increase work on this portion of our project in the beginning, or avoid
+undertaking that monstrous task altogether.
+
+\subsection{Individual Lessons Learned}
+Alec learned about writing a USB device driver, and choosing video formats
+based on bandwidth constraints. He also experienced soldering a TQFP with more
+than 64 pins for the first time, and learned from Yitian how to use flux to fix
+solder bridges. He also learned a bit about designing a network protocol.
+
+Alex learned about researching parts. This involved not only finding a part
+that meets the requirements of the project but also researching different
+sources for the same part. This was learned the hard way by choosing a WiFi
+module that has been retired and is no longer supported by TI, something that
+made finding resources much more difficult. He also learned about PCB
+verification and how to make sure individual parts of the PCB are working while
+not having the others functional. 
+
+Jacob learned about designing a PCB using Eagle. This involved coordination
+with each team member to discuss options regarding schematic (pin selection)
+and layout considerations. After fabrication, he was forced to learn a great
+deal about debugging hardware, including what not to do (i.e. shorting pins
+with bad probes).
+
+Jiqing got familiar with the process flow of programming in Code Composer
+Studio from TI and the 3D design by using Solidworks. He learned about the
+working principle of reading from and writing to a SD card via SPI
+communication and how each individual function got integrated in a whole
+system. He also learned about using Logic Analyzer to debug and asking TI
+supporting team online for help. He worked with Alec on establishing a USB
+device driver in the beginning of the project and learned its working principle
+with the help of Alec and examples from documents.
+
+Yun learned about an overall real-application design process that includes PCB
+design and manufacturing, 3D design and printing, and group coordination
+through Github. Also, he learned about video protocol and its encoding and
+decoding methods.
+
+\section{Contributions}
+A summary of individual contributions is given in Table
+\ref{tab:individual_contrib}, and details are given below.
+
+\begin{table}[h]
+    \centering
+    \caption{Individual team member contributions}
+    \begin{tabular}{llr}
+        \textbf{Team Member} & \textbf{Summary of Contribution} & \textbf{Effort}\\
+        Alec Ten Harmsel & UVC driver, base station, power analysis & 25\%\\
+        Alex LaBerge & Wi-Fi driver, \gls{gps}, sleep mode, \gls{pcb} verification & 25\%\\
+        Jacob Perrin & \gls{pcb} design and assembly, group coordination & 20\%\\
+        Jiqing Jiang & \gls{sd} card driver, \gls{uvc} driver, enclosure design, poster design & 15\%\\
+        Yun Chan Han & Trigger circuitry and software, enclosure design, poster design & 15\%\\
+    \end{tabular}
+\end{table}
+
+Alec was responsible for the USB Video Class device driver. This driver parsed
+the configuration of the connected USB camera, determined the optimal format
+and video size based on bandwidth constraints, and then configured the camera.
+After camera configuration, the driver also implemented the “top” side of an
+interrupt-based video capture solution. In addition, Alec wrote the base
+station code, which listened on the network for video broadcasted by the body
+camera system, converted it to a reasonable format with OpenCV, and displayed
+it with the Qt Toolkit. Finally, Alec was responsible for the power system
+design and reviewing the circuit schematics and layouts produced by Jake.
+
+Alex was responsible for the main control loop for the TIVA recording software,
+which included integrating his WiFi and GPS drivers in with Alec’s USB driver.
+He optimized the TI library for the WiFi module to get the fastest throughput
+possible on the CC3000 by removing unnecessary delays and making the sockets
+nonblocking. Alex also wrote the first iteration of base station socket code
+which received the data streamed from the TIVA, which was later improved by
+Alec. Finally, Alex was responsible for verifying the components on the PCB
+worked and debugging the issues that arose.
+
+Jacob was primarily responsible for all activities related to the hardware, and
+specifically the PCB. As such, he designed the schematic and layout for the
+PCB. The PCB was designed before most parts of the prototype had been finished,
+or even begun. As such, this took a good deal of effort and care (there were
+still small errata on the final version of the PCB). He also took part in the
+assembly of four different PCB boards. Additionally, Jacob was responsible for
+coordinating group activities and communication with outside parties. This
+includes getting sponsored by Advanced Circuits as well as doing any
+miscellaneous grunt work that the group came across through the life of the
+project.
+
+Jiqing was responsible for the implementation of saving video data in a micro
+SD card on TM4C1294NCPDT and the enclosure design in Solidworks. He also helped
+to debug for system integration and checking PCB design when things did not
+work. He also worked with Alec on the USB video class device driver and
+designed the poster.
+
+Yun was responsible for the hardware and software of triggering portion of the
+project. He designed the schematic of a circuitry that takes analog and digital
+inputs from a switch, a microphone, and a RFID reader. The circuitry he
+designed was adjustable in that the noise level can be controlled externally.
+Then he designed the triggering logic to start and end the video recording on
+MSP430. He also designed a tamperproof enclosure that protects a USB cable
+connection and a SD card from users. He designed the poster for design expo as
+well.
+
+\section{Cost of Manufacture}
+Our total estimated cost of manufacturing is \$120 for any quantity greater
+than 150. This seems like a very reasonable number given the price of the parts
+listed above. This quote includes the WiFi breakout and RFID module. The only
+additional pieces of hardware that would be needed in order to make this quote
+a complete package would be the camera, battery, and enclosure. These items
+would likely bring the price to manufacture this item to somewhere closer to
+\$200-\$250. Given that we would need to rethink some partitions of this project,
+most important among these being WiFi bandwidth and microprocessor processing
+power, this number does appear to be very rough. However, with this cost of
+manufacturing, such a product could be very competitive in this market, where
+prices can often be found near the \$1000 range.
 
 \section{Conclusion}
-
 Our project proposes an optimal scheme to satisfy questions of unethical
 conduct by police officers. Even though police officers maintain the right to
 apprehend suspects by force, many suspect officers of abuse of their power.
@@ -480,222 +689,5 @@ functionality for the use of a wearable body camera in a tactical application.
 
 \bibliographystyle{plain}
 \bibliography{references}
-
-\newpage
-
-\appendix
-\section{Design Criteria}
-
-\begin{table}[h!]
-    \centering
-    \caption{Design Criteria}
-    \begin{tabular}{lll}
-        Design Criteria & Importance & Will/Expect/Stretch\\
-        RFID/NFC Holster & High & Will\\
-        Video Data Saved Locally & High & Will\\
-        RTC synced with GPS & High & Will\\
-        Holster/Audio Trigger & High & Will\\
-        Video Data Streamed & High & Will\\
-        Prevent Tampering & Medium & Stretch\\
-        Processor on gun for telemetry & Low & Stretch\\
-        Mesh Network for multiple Officers & Low & Stretch\\
-    \end{tabular}
-\end{table}
-
-\newpage
-
-\section{Milestones}
-
-\subsection{Milestone 1}
-\begin{itemize}
-    \item GPS and RTC tested and verified
-    \item Can send a trigger based on sound level or manual switch
-    \item RFID in development
-    \item Packet can be sent over wifi
-    \item Video data verified
-\end{itemize}
-
-\subsection{Milestone 2}
-\begin{itemize}
-    \item Working full-featured prototype, video streamed on any of our triggers
-    \item PCB is shipped
-    \item Enclosure designed but not printed
-\end{itemize}
-
-\newpage
-
-\section{Interface Design}
-
-\begin{lstlisting}
-typedef enum day_of_week_t 
-{
-    SUNDAY,
-    MONDAY,
-    TUESDAY,
-    WEDNESDAY,
-    THURSDAY,
-    FRIDAY,
-    SATURDAY
-};
-
-
-typedef struct rtc_time_t 
-{
-    uint16_t year;
-    uint8_t month;
-    day_of_week_t dayOfWeek;
-    uint8_t day;
-    uint8_t hours;
-    uint8_t minutes;
-    uint8_t seconds;
-};
-
-
-class RTC_t
-{
-    public:
-    
-    void rtcInit();
-    rtc_time_t getTime();
-    void setTime( rtc_time_t );
-    
-    private:
-    
-    rtc_time_t lastTime;
-};
-
-
-typedef enum gps_protocol_t
-{
-    GPRMC,
-    GPGGA,
-    GPGSA
-};
-
-
-class GPS_t
-{
-    public:
-    
-    void gpsInit();
-    void* gpsTask();
-    double getLat();
-    double getLon();
-    rtc_time_t getTime();
-    
-    private:
-    
-    gps_protocol_t gpsProtocol;
-};
-
-
-class Wifi_t
-{
-    public:
-    
-    void wifiInit();
-    int connect();
-    int disconnect();
-    int send(char* data);
-    char* receive();
-    
-    private:
-    int ipAddress;
-};
-
-
-typedef double decibel;
-
-
-class Microphone_t
-{
-    public:
-    
-    void microphoneInit();
-    void* microphoneTask();
-    decibel getVolume();
-    
-    private:
-};
-
-
-class Rfid_t
-{
-    public:
-    
-    void rfidInit();
-    void* rfidTask();
-    
-    private:
-    boolean isTagPresent();
-};
-
-
-class Camera_t
-{
-    public:
-    
-    void cameraInit();
-    boolean turnCameraOn();
-    boolean turnCameraOff();
-    boolean isCameraOn();
-
-
-    private:
-};
-\end{lstlisting}
-
-\newpage
-
-\section{Group Agreement}
-
-The team will have weekly meetings where all group members are present on
-Tuesdays at 7, a time we have all confirmed via WhenIsGood. We will also have
-one midday meeting during the weekend, either Saturdays or Sundays that are
-fairly informal where we meet for lunch and discuss high level project goals
-and problems. Most meetings will take place in the MESH or 473 lab.. The team
-has a WhenIsGood in order to organize meeting times for tasks involving two or
-more people, but team members are expected to get work done on their own as
-well. The group has its own email at 473.body.cam@umich.edu, as well as a
-GroupMe we use to send text message updates to each other. Most of the work
-will be done in the 473 lab, but any PCB work will probably be done in the MESH
-lab. Any 3D printing will be done in the AERO lab. We also have designated who
-will be working on which parts of the project, based on each group member’s
-individual strengths. We expect the group members to spend approximately 25-30
-hours per week at the beginning of the project, and approximately 40 hours per
-week during the second half until the end of the project. The task list is as
-follows:
-
-Known Conflicts:
-
-\ \\
-
-\begin{tabular}{lll}
-    Who & What & When\\
-    All & Fall Study Break & October 17-20\\
-    All & 473 Midterm & October 27\\
-    All & Thanksgiving Break & November 25-30\\
-    Alex & Out of town & October 25\\
-    Alex & Out of town & November 5\\
-    Alec & Wisdom Teeth Removal & October 20-22\\
-    Yun & Out of town & October 9\\
-\end{tabular}
-
-\begin{itemize}
-    \item Meeting Minutes - Alex
-    \item Group Coordination - Jake
-    \item Real Time Clock - Jake
-    \item GPS - Alex
-    \item RFID Reader - Yun
-    \item Microphone - Alex
-    \item Camera \begin{itemize}
-            \item LED - Alec/Jiqing
-            \item Storage - Alec/Jiqing
-            \item Low Level Interface - Alec/Jiqing
-            \item Streaming - Alex
-        \end{itemize}
-    \item Mech. CAD and 3D printing - Alex/Alec
-    \item PCB Design - Jake/Jiqing
-\end{itemize}
 
 \end{document}
