@@ -18,6 +18,10 @@ clean :
 	convert $< $@
 
 final_report.pdf : \
+	BodyCamBoard_brd.pdf \
+	BodyCamBoard_sch.pdf \
+	IOBoard_brd.pdf \
+	IOBoard_sch.pdf \
 	glossary.tex \
 	logo.pdf \
 	references.bib
