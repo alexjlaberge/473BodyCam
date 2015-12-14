@@ -25,8 +25,10 @@ final_report.pdf : \
 	BodyCamBoard_sch.pdf \
 	IOBoard_brd.pdf \
 	IOBoard_sch.pdf \
+	budget.tex \
 	glossary.tex \
 	logo.pdf \
 	references.bib \
 	subsys_video.pdf \
+	sys_desc.pdf \
 	uvc.h
