@@ -117,6 +117,7 @@ An overview of our product is shown in Figure \ref{fig:system_description}.
 
 \subsection{Trigger System}
 \label{sec:sys_trigger}
+The trigger subsystem consists of the hardware and software used to process our triggers and send an interrupt to the TIVA to begin or end recording. The MSP430 takes in a comparator line that determines the microphone level, an RFID radio card present line, and a manual switch and determines when to wake the TIVA based on those inputs. 
 
 \subsection{Video System}
 \label{sec:sys_video}
@@ -630,6 +631,21 @@ prices can often be found near the \$1000 range.
 
 \subsection{UVC/Camera Interface}
 \lstinputlisting{uvc.h}
+
+\newpage
+
+\subsection{Network Interface}
+\lstinputlisting{network.h}
+
+\newpage
+
+\subsection(GPS Interface}
+\lstinputlisting{gps.h}
+
+\newpage
+
+\subsection(Trigger Interface}
+\lstinputlisting{trigger.h}
 
 \newpage
 
