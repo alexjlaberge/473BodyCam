@@ -146,7 +146,12 @@ three callbacks to announce the start of a frame, the data in a frame, and the
 end of a frame. Using those callbacks, the video data is both written to the
 \gls{sd} card and streamed to the base station.
 
-% TODO paragraph about the SD driver
+Our SD card writer is a modified SPI driver that runs through a library called
+FatFS. This formats the SPI messages to open files and write to those files with 
+relative ease. Our implementation takes the frame that is received from the USB
+and writes it to a file in plaintext. From there we can use a similar implementation
+on our base station as the WiFi receiver to display the frames with a small delay
+inbetween to simulate frame rate. 
 
 The Wi-Fi streaming is comprised of two components; a CC3000 chip that handles
 the wireless connection on the body camera system, and a base station that runs
@@ -360,7 +365,7 @@ schedule is shown in Appendix \ref{app:gantt}. All deadlines were met except
 for the Camera Driver, which was not in testing until late November and
 finished until early December.
 
-Our original budget was around \$312.93 and we spent TODO. % TODO
+Our original budget was around \$312.93 and we spent \$884.91 % TODO
 
 \subsection{Milestone 1}
 \subsubsection{GPS and RTC Implementation and Verification}
@@ -417,28 +422,6 @@ as early as we did definitely helped us stay on track.
 This goal was also underestimated. Our team had a first version enclosure
 printed that helped us form the next and final version that we have on the
 final prototype. Having this milestone completed also helped us stay on track.
-
-\subsection{Budget and Bill of Materials}
-
-\begin{table}[h!]
-    \centering
-    \caption{Budget}
-    \begin{tabular}{lrrlr}
-        Product & Cost & Qty & Part & Shipping\\
-        Camera & \$37.00 & 1 & Genius F100 & \$0.00\\
-        GPS & \$39.95 & 1 & USGlobalSat EM-506 & \$2.50\\
-        RTC & \$3.47 & 1 & Epson RX8900CE:UA3 & \$3.00\\
-        Microphone & \$7.95 & 1 & CE CEM-C9745JAD462P2.54R & \$2.50\\
-        Wifi Radio & \$6.95 & 1 & Nurdspace ESP8266 & \$3.00\\
-        RFID Eval Board & donated & 1 & TI EZ430-TMS37157 & \$0.00\\
-        Video Eval Board & donated & 1 & TI Tiva & \$0.00\\
-        Video Processor & \$15.61 & 1 & TI TM4C1290NCPDT & \$3.04\\
-        PCB fabrication & \$33 & 2 & Advanced Circuits & \$10.00\\
-        PCB Parts & \$100 & 1 & Digikey & \$20.00\\
-        Battery & \$37 & 1 & Venom 3200mAh 20C LiPo & \$0.00\\
-        Total & \$312.93 & & & \$44.04\\
-    \end{tabular}
-\end{table}
 
 \section{Lessons Learned}
 When we reflect on the outcome of our project, there are a few points which we
@@ -552,6 +535,8 @@ design and reviewing the circuit schematics and layouts produced by Jake.
 
 Alex was responsible for the main control loop for the TIVA recording software,
 which included integrating his WiFi and GPS drivers in with Alec's USB driver.
+He debugged the SD card implementation and formatted Jiqing's driver to work with
+the pins that the PCB used, as well as integrated that feature into the control loop. 
 He optimized the TI library for the WiFi module to get the fastest throughput
 possible on the CC3000 by removing unnecessary delays and making the sockets
 nonblocking. Alex also wrote the first iteration of base station socket code
