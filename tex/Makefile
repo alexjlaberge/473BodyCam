@@ -24,4 +24,5 @@ final_report.pdf : \
 	IOBoard_sch.pdf \
 	glossary.tex \
 	logo.pdf \
-	references.bib
+	references.bib \
+	uvc.h
