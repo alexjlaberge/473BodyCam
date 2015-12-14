@@ -29,4 +29,5 @@ final_report.pdf : \
 	logo.pdf \
 	references.bib \
 	subsys_video.pdf \
+	sys_desc.pdf \
 	uvc.h
