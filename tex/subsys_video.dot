@@ -1,0 +1,19 @@
+digraph G {
+    node [shape="box"];
+    rankdir = LR;
+
+    bs [label="Base Station"]
+    camera [label="Camera"]
+    sd [label="SD Card"]
+    tiva [label="TIVA"]
+    trigger [label="VIDEO_TRIGGER"]
+    wifi [label="Wi-Fi"]
+
+    camera -> tiva
+    trigger -> tiva
+
+    tiva -> sd
+    tiva -> wifi
+
+    wifi -> bs
+}

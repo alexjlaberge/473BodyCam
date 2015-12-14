@@ -17,6 +17,9 @@ clean :
 %.pdf : %.svg
 	convert $< $@
 
+%.svg : %.dot
+	dot -Tsvg $< > $@
+
 final_report.pdf : \
 	BodyCamBoard_brd.pdf \
 	BodyCamBoard_sch.pdf \
@@ -25,4 +28,5 @@ final_report.pdf : \
 	glossary.tex \
 	logo.pdf \
 	references.bib \
+	subsys_video.pdf \
 	uvc.h

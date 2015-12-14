@@ -108,8 +108,80 @@ the public while reducing costs.
 \subsection{System Description}
 
 \subsection{Trigger System}
+\label{sec:sys_trigger}
 
 \subsection{Video System}
+\label{sec:sys_video}
+The video subsystem consists of the hardware and software used to capture video
+from a source and send it to various sinks. The source of the video is any
+camera that complies with the \gls{uvc} standard. There are currently two
+implemented sinks: an on-board \gls{sd} card and streaming to a base station
+over Wi-Fi. The larger of the two onboard processors, a TIVA, manages the
+transfer of video from source to sinks. The flow of video through the system is
+shown in Figure \ref{fig:video_flow}.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.9\textwidth]{subsys_video}
+    \caption{Video subsystem}
+    \label{fig:video_flow}
+\end{figure}
+
+Currently, the driver that handles the video source is compatible with and aims
+to fully comply with versions 1.1 and 1.5 of the \gls{uvc}
+standard\cite{uvc_standard_11,uvc_standard_15}. The driver supports both a raw
+video format\footnote{Specifically the YUY2 encoding} and the MJPEG format. In
+order to obtain the highest-quality video at the lowest bandwidth, the driver
+prefers MJPEG over raw. In order to choose a resolution, the driver is
+initialized with a target bandwidth and then chooses a frame size that will be
+as close to that bandwidth as possible without exceeding it. The driver
+initialization function declaration is shown in Appendix
+\ref{app:software_interfaces}.
+
+The TIVA processor is triggered on by the trigger system, which is described in
+Section \ref{sec:sys_trigger}. Once triggered, the TIVA opens connections to
+the attached camera, the on-board \gls{sd} card, and the base station via the
+Wi-Fi chip. As video data flows in from the camera, the \gls{uvc} driver uses
+three callbacks to announce the start of a frame, the data in a frame, and the
+end of a frame. Using those callbacks, the video data is both written to the
+\gls{sd} card and streamed to the base station.
+
+% TODO paragraph about the SD driver
+
+The Wi-Fi streaming is comprised of two components; a CC3000 chip that handles
+the wireless connection on the body camera system, and a base station that runs
+on a computer. The CC3000 streams video data using the \gls{udp} protocol to
+the base station, using the proprietary packet format shown in Table
+\ref{tab:packet_format}.  The base station receives the video packets, combines
+the various chunks in the correct order, and both saves to a hard drive and
+displays the video on-screen.
+
+\begin{table}[h]
+    \centering
+    \caption{Body Camera Streaming Protocol}
+    \begin{tabular}{lrr}
+        \textbf{Field} & \textbf{Offset} & \textbf{Size (bytes)}\\
+        length & 0 & 2\\
+        ID & 2 & 1\\
+        type & 3 & 1\\
+        offset & 4 & 4\\
+        data & 8 & length\\
+    \end{tabular}
+    \label{tab:packet_format}
+\end{table}
+
+By saving locally, our product provides resiliency. When a network is not
+available, all video data is still saved. It is impossible to destroy the
+evidence by jamming the wireless network signal, so even extremely resourceful
+criminals and/or very electrically noisy environments will not prevent evidence
+from being gathered. By streaming data to a police department or third party
+network, our product increases the safety of all parties involved and provides
+redundancy to reduce the chance of evidence destruction. The safety of the
+parties involved in a violent situation is increased because the police
+department knows as soon as an officer enters a violent situation. Backup may
+be dispatched without the officer having to request it; in cases where an
+officer unknowingly walks into a dangerous situation, this feature is
+life-saving.
 
 % TODO Move this stuff around
 The device revolves around two main parts, the belt enclosure and the camera.
@@ -555,6 +627,7 @@ prices can often be found near the \$1000 range.
 \newpage
 
 \section{Software Interfaces}
+\label{app:software_interfaces}
 % TODO
 
 \subsection{UVC/Camera Interface}
