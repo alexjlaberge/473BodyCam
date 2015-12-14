@@ -25,6 +25,7 @@ final_report.pdf : \
 	BodyCamBoard_sch.pdf \
 	IOBoard_brd.pdf \
 	IOBoard_sch.pdf \
+	budget.tex \
 	glossary.tex \
 	logo.pdf \
 	references.bib \
