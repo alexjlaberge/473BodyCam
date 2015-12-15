@@ -23,6 +23,10 @@
 \vfill
 
 \begin{center}
+    {\large EECS 473 - Advanced Embedded Systems - F15}
+
+    \vspace{2.0em}
+
     \begin{tabular}{lr}
         Yun Chan Han & \url{ychani@umich.edu}\\
         Jiqing Jiang & \url{jqjiang@umich.edu}\\
@@ -195,20 +199,21 @@ video format\footnote{Specifically the YUY2 encoding} and the MJPEG format. In
 order to obtain the highest-quality video at the lowest bandwidth, the driver
 prefers MJPEG over raw. In order to choose a resolution, the driver is
 initialized with a target bandwidth and then chooses a frame size that will be
-as close to that bandwidth as possible without exceeding it. The driver
-initialization function declaration is shown in Appendix
-\ref{app:software_interfaces}.
+as close to that bandwidth as possible without exceeding it. Due to the
+limitations of the Wi-Fi hardware, a frame size of 160 x 120 is the largest
+resolution that can be streamed. The driver initialization function declaration
+is shown in Appendix \ref{app:software_interfaces}.
 
 The Tiva processor is triggered on by the trigger system, which is described in
-Section \ref{sec:sys_trigger}. Once triggered, the Tiva opens connections to
-the attached camera, the on-board \gls{sd} card, and the base station via the
-Wi-Fi chip. As video data flows in from the camera, the \gls{uvc} driver uses
-callbacks to announce the start of a frame, the data in a frame, and the
-end of a frame. Using those callbacks, the video data is both written to the
-\gls{sd} card and streamed to the base station.
+Section \ref{sec:sys_trigger}. Once triggered, the Tiva wakes from sleep and
+opens connections to the attached camera, the on-board \gls{sd} card, and the
+base station via the Wi-Fi chip. As video data flows in from the camera, the
+\gls{uvc} driver uses callbacks to announce the start of a frame, the data in a
+frame, and the end of a frame. Using those callbacks, the video data is both
+written to the \gls{sd} card and streamed to the base station. The Tiva
+processor does not run an operating system, decreasing its response time and
+increasing its performance.
 
-% TODO cite FatFS
-% TODO cite OpenCV
 Our SD card writer is a modified SPI driver that runs through a library called
 FatFS. This formats the SPI messages to open files and write to those files
 with relative ease. Our implementation takes the frame that is received from
@@ -291,7 +296,7 @@ upgraded as needed, depending on the workload of the officer.
 
 \begin{figure}[h]
     \centering
-    \includegraphics[width=0.8\textwidth]{exploded_enclosure}
+    \includegraphics[height=0.35\textheight]{exploded_enclosure}
     \caption{Exploded view of enclosure with \gls{pcb}}
     \label{fig:exploded_enclosure}
 \end{figure}
@@ -301,14 +306,15 @@ camera, shown in Figure \ref{fig:exploded_enclosure}. The enclosure was
 intended to be tamperproof (or as tamperproof as possible for a prototype) by
 preventing connections to a \gls{usb} camera and a \gls{sd} card from being
 disconnected.  Due to the limitation of a 3D printer and the design of our
-\gls{pcb}, the enclosure design was not the most optimal, wasting a lot of spaces
-inside the enclosure.  The enclosure is attached to the holster and had an
-opening at the bottom to minimize the distance between the \gls{rfid} reader and a
-\gls{rfid} tag on the firearm.  This ensures an accurate detection of the state of
-the firearm - whether it is holstered or otherwise. If this project were to be
-moved towards production, the product would need considerable improvement in
-the area of the enclosure, but since we are not skilled in this area, we feel
-that the current state is more than satisfactory.
+\gls{pcb}, the enclosure design was not the most optimal, wasting a lot of
+space inside the enclosure.  The enclosure is attached to the holster and had
+an opening at the bottom to minimize the distance between the \gls{rfid} reader
+and a \gls{rfid} tag on the firearm.  This ensures an accurate detection of the
+state of the firearm - whether it is holstered or otherwise. If this project
+were to be moved towards production, the product would need considerable
+improvement in the area of the enclosure, but since we are not skilled in this
+area, we feel that the current state is more than satisfactory. The enclosure
+has a mass of 209 grams, and has dimensions of 166 x 62 x 24mm.
 
 The \gls{usb} camera was mounted on the shoulder of the officer. Since most
 police officer uniforms have a shoulder strap, USB cameras with clips can be
