@@ -89,23 +89,21 @@ very strong and may override their sense of duty.
 
 \subsection{Objectives}
 When purchasing body cameras, police departments must analyze the costs and
-benefits.  The costs of available systems is high; in addition to the high cost
-of current units\cite{cam}, storing the amount of footage from body cameras
-that are always on represents a significant challenge\cite{store1,store2}. In
-addition, many officers fear for their privacy\cite{officer_privacy}. Since the
-camera knows when the officer is in danger, backup may be automatically
-dispatched before the officer has time to call for it. Finally, a police
-department may purchase third-party streaming attachments to stream video to a
-third-party cloud system to minimize liability and to ensure the public that
-corruption is not likely\footnote{We have not seen any articles on this
-concept, although contracting liability to a third party is common.}.  Our
-product currently fulfills all of the
-above objectives at a prototype level.  It will be priced in the same range as
-currently available body cameras, but increases the safety of both officers and
-the public while reducing costs.
+benefits.  In addition to the high cost of current units\cite{cam}, storing the
+amount of footage from body cameras that are always on represents a significant
+challenge\cite{store1,store2}. Another dilemma facing current solutions is how
+to deal with respecting the privacy of the officer\cite{officer_privacy}. Our
+product meets the above objectives by being below the current average cost and
+by only recording footage of violent situations. In addition, our product meets
+objectives relating to safety and legal liability.  To increase safety, backup
+may be automatically dispatched when our product signals violence before the
+officer has time to call for it. To minimize legal liability and reduce the
+likelihood of corruption, a police department may purchase third-party
+streaming attachments to stream video\footnote{We have not seen any articles on
+    reducing liability applied to this topic, but contracting liability to a
+third party is commonly done in business.}.
 
 \subsection{System Description}
-An overview of our product is shown in Figure \ref{fig:system_description}.
 
 \begin{figure}[h]
     \centering
@@ -113,6 +111,18 @@ An overview of our product is shown in Figure \ref{fig:system_description}.
     \caption{System description}
     \label{fig:system_description}
 \end{figure}
+
+Our project can be easily broken down into two systems: a trigger system and a
+record system. A functional block diagram of these systems and their related
+subsystems is shown in Figure \ref{fig:system_description}. The trigger system
+serves as a ``trigger'' to wake up the record system when the system senses a
+potentially violent situation. The MSP430 contains code which determines when
+the TIVA should be awoken based on selected events. When the MSP430 decides
+that an event should be recorded, it sends a signal to the TIVA, which serves
+as an interrupt to wake up the larger processor. This same signal also toggles
+a set of MOSFETs which control power to the record system related peripherals.
+Together, these two systems make up a product which can be smarter and lower
+power than current solutions.
 
 \subsection{Trigger System}
 \label{sec:sys_trigger}
@@ -127,12 +137,38 @@ An overview of our product is shown in Figure \ref{fig:system_description}.
 The trigger subsystem, shown in Figure \ref{fig:trigger_flow}, consists of the
 hardware and software used to process our triggers and send an interrupt to the
 TIVA to begin or end recording. The MSP430 takes in a comparator line that
-determines the microphone level, an RFID radio card present line, and a manual
-switch and determines when to wake the TIVA based on those inputs.
+determines the microphone level, an \gls{rfid} radio card present line, and a
+manual switch and determines when to wake the TIVA based on those inputs.
 
-\subsection{Video System}
+We chose the MSP430 because it is a very low power processor that has enough
+GPIO pins to fit our need. When not receiving interrupts off of the 3 trigger
+lines, it is put into a low power mode with interrupts enabled, which allows
+minimal current draw while maintaining full functionality.
+
+The most important trigger for this project is the \gls{rfid} radio. We use the
+ID-12LA \gls{rfid} radio because it is relatively low power and matched the
+frequency of the sticker tags we wanted to use. It has a ``Card Present'' line
+which is high when a tag is present and low when there is no tag, which
+simplified the interface for this part greatly. 
+
+We use a switch on the device in order to allow the officer to turn on the
+device if he feels unsafe. However, the switch cannot turn off the device if
+any of the other triggers are present. 
+
+The microphone input is calibrated with two on-board potentiometers,
+controlling gain and triggering threshold, that can be customized for an
+officers environment. This value is then put into an analog comparator that
+triggers an MSP430 interrupt when the microphone value has surpassed the
+threshold value. 
+
+Mechanically, many of these triggering mechanisms are located outside of the
+enclosure. This allows for little interference between the enclosure and the
+\gls{rfid} radio. This also allows the user to be able to easily access the
+switch and the microphone to be able to pick up smaller more clear sounds.
+
+\subsection{Record System}
 \label{sec:sys_video}
-The video subsystem consists of the hardware and software used to capture video
+The record system consists of the hardware and software used to capture video
 from a source and send it to various sinks. The source of the video is any
 camera that complies with the \gls{uvc} standard. There are currently two
 implemented sinks: an on-board \gls{sd} card and streaming to a base station
@@ -162,24 +198,26 @@ The TIVA processor is triggered on by the trigger system, which is described in
 Section \ref{sec:sys_trigger}. Once triggered, the TIVA opens connections to
 the attached camera, the on-board \gls{sd} card, and the base station via the
 Wi-Fi chip. As video data flows in from the camera, the \gls{uvc} driver uses
-three callbacks to announce the start of a frame, the data in a frame, and the
+callbacks to announce the start of a frame, the data in a frame, and the
 end of a frame. Using those callbacks, the video data is both written to the
 \gls{sd} card and streamed to the base station.
 
+% TODO cite FatFS
+% TODO cite OpenCV
 Our SD card writer is a modified SPI driver that runs through a library called
-FatFS. This formats the SPI messages to open files and write to those files with 
-relative ease. Our implementation takes the frame that is received from the USB
-and writes it to a file in plaintext. From there we can use a similar implementation
-on our base station as the WiFi receiver to display the frames with a small delay
-inbetween to simulate frame rate. 
+FatFS. This formats the SPI messages to open files and write to those files
+with relative ease. Our implementation takes the frame that is received from
+the USB and writes it to a file in plaintext. From there we can use a similar
+implementation on our base station as the WiFi receiver to display the frames
+with a small delay inbetween to simulate frame rate. 
 
-The Wi-Fi streaming is comprised of two components; a CC3000 chip that handles
-the wireless connection on the body camera system, and a base station that runs
-on a computer. The CC3000 streams video data using the \gls{udp} protocol to
-the base station, using the proprietary packet format shown in Table
-\ref{tab:packet_format}.  The base station receives the video packets, combines
-the various chunks in the correct order, and both saves to a hard drive and
-displays the video on-screen.
+The Wi-Fi streaming is comprised of two components: a CC3000 chip that handles
+the wireless connection on the body camera system and a base station that runs
+on a computer. The CC3000, using the \gls{udp} protocol-based proprietary
+packet format shown in Table \ref{tab:packet_format}, streams video data to the
+base station.  The base station receives the video packets, combines the
+various chunks in the correct order, saves to a hard drive, and displays the
+video on-screen.
 
 \begin{table}[h]
     \centering
@@ -200,9 +238,9 @@ available, all video data is still saved. It is impossible to destroy the
 evidence by jamming the wireless network signal, so even extremely resourceful
 criminals and/or very electrically noisy environments will not prevent evidence
 from being gathered. By streaming data to a police department or third party
-network, our product increases the safety of all parties involved and provides
-redundancy to reduce the chance of evidence destruction. The safety of the
-parties involved in a violent situation is increased because the police
+network, our product increases the immediate safety of all parties involved and
+provides redundancy to reduce the chance of evidence destruction. The safety of
+the parties involved in a violent situation is increased because the police
 department knows as soon as an officer enters a violent situation. Backup may
 be dispatched without the officer having to request it; in cases where an
 officer unknowingly walks into a dangerous situation, this feature is
@@ -213,10 +251,10 @@ Our system is designed to use as little energy as possible by removing power to
 all video-related subsystems until video needs to be recorded. The video
 subsystem consists of a Texas Instruments TIVA
 microcontroller\cite[p.~1880]{tm4c1294ncpdt}, a Texas Instruments CC3000 Wi-Fi
-chip\cite[p.~6]{cc3000}, an SD card\cite[p.~19,23]{sd_standard}, a EM-506 GPS
+chip\cite[p.~6]{cc3000}, an SD card\cite[p.~19,23]{sd_standard}, a EM-506 \gls{gps}
 unit\cite[p.~10]{em506}, and a USB camera\cite[p.~245]{usb_standard}. These
-parts draw the majority of the power, totalling 4290.4 mW in the worst case.
-The rest of the system draws a relatively small 131.4 mW. The individual worst
+parts draw the vast majority of the power, totalling 4290.4 mW in the worst case.
+The rest of the system, composed mostly of the trigger system, draws a relatively small 131.4 mW. The individual worst
 case power draws are given in Table \ref{tab:worst_case_power}.
 
 % TODO Cite the specification sheets
@@ -241,47 +279,19 @@ case power draws are given in Table \ref{tab:worst_case_power}.
     \label{tab:worst_case_power}
 \end{table}
 
-In an 8 hour police shift, our device can record up to one half hour of video,
-requiring approximately 13.65 Wh of energy. A battery with \textasciitilde{} 20
-Wh has been chosen for overhead and to deal with wear in production use. A
-lithium-polymer battery was chosen due to the high energy density and ability
-to recharge. Lithium-polymer batteries can be dangerous, especially when
-exposed to forceful strikes; a tough battery case will mitigate this danger.
+Using a 25Wh battery, an officer can record for 1.5 hours. The battery may be
+upgraded as needed, depending on the workload of the officer.
 
 \subsection{Mechanical Design}
-The mechanics of this design revolve around one enclosure that contains the PCB
-that houses the MSP430, GPS, RTC, RFID reader, an exposed switch, and a
-microphone. The RFID reader will have an antenna coming out of the enclosure
-that will be mounted on the holster. This enclosure will also contain a TIVA
-with an attached WiFi radio, which will also have an externally mounted
-antenna. The camera will be mounted on the shoulder of the officer and will be
-connected to the enclosure via a USB cable, as the camera solution we have is
-USB compatible. The camera will also have an enclosure that allows it to
-comfortably be mounted to the officer's shoulder. All connections and the
-protocols they use can be found in the diagram above.
 
-Another mechanical design feature is the size limitations we will run into.
-However, officers already carry weapons as well as radios on their belt, so
-anything we add to the belt will not be too much for the officer as long as it
-is not big enough to be physically intrusive. However, sticking to just a
-camera mounted on the shoulder is key, because something heavy on a shoulder
-could knock his aim off and potentially put the officer in a dangerous
-situation. 
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{exploded_enclosure}
+    \caption{Exploded view of enclosure with \gls{pcb}}
+    \label{fig:exploded_enclosure}
+\end{figure}
 
 \subsection{Conclusion}
-Our project proposes an optimal scheme to satisfy questions of unethical
-conduct by police officers. Even though police officers maintain the right to
-apprehend suspects by force, many suspect officers of abuse of their power.
-Righteousness of the officers’ actions can not be judged without tangible
-evidence of incidents. Having videos recorded only when an incident occurs will
-provide tangible evidence to judge whether officers’ actions were just, without
-violating officers’ privacy. One of the difficulties is that it is difficult to
-precisely distinguish a moment to start recording a video well enough to
-encompass whole situation. Achieving live streaming is optimal but will be
-challenging to get done in the given scope of the project. However, once our
-proposed function is achieved, it will open many possibilities to extend its
-uses and functionalities. When successful, this project will provide optimal
-functionality for the use of a wearable body camera in a tactical application. 
 
 \section{Milestones, Schedule, and Budget}
 Most of this project was on schedule from the beginning. The only problem we
@@ -289,71 +299,70 @@ really ran into was getting our final piece of the puzzle in place: decoding
 our video. Once we that was working, the remainder of the project was quickly
 integrated and a full feature prototype was able to be tested. Our original
 schedule is shown in Appendix \ref{app:gantt}. All deadlines were met except
-for the Camera Driver, which was not in testing until late November and
+for the Camera Driver, which was not in testing until late November and not
 finished until early December.
 
-Our original budget was around \$312.93 and we spent \$884.91 % TODO
+Our original budget was around \$312.93 and we spent \$884.91. % TODO
 
 \subsection{Milestone 1}
 \subsubsection{GPS and RTC Implementation and Verification}
-Getting an early GPS parser was one of the easier parts of the project, while
-it was also one of the more unnecessary parts for a working demo. GPS was done
+Getting an early \gls{gps} parser was one of the easier parts of the project, while
+it was also one of the more unnecessary parts for a working demo. \gls{gps} was done
 early, but it turned out not to be very vital to the success of the project.
 
 \subsubsection{Audio and Manual Trigger Implementation and Verification}
-This was a very early victory that helped the trigger side of our project get
-done as quickly as it did. We had a working prototype for the MSP430 trigger
-processor about a week before the first milestone and we had a final version a
-few weeks later, which ensured that once we got all of the TIVA video
-processing done, we could easily integrate the two parts together.
+Quickly getting this system prototyped was a very early victory that helped the
+trigger side of our project get done as quickly as it did. We had a working
+prototype for the MSP430 trigger processor about a week before the first
+milestone and we had a final version a few weeks later, which ensured that once
+we got all of the TIVA video processing done, we could easily integrate the two
+parts together.
 
 \subsubsection{Wi-Fi Testing}
-Originally we had a UART-based WiFi module that did not have a great datasheet
-or any sort of support on the internet. With this in mind and the fact that it
-seemed to overheat easily, we looked for a quick replacement. What we found was
-the CC3000, which boasted a 4Mbps data transfer rate over TCP. Having a little
-bit of background in networking, we figured UDP would be even faster so we
-locked this in as our choice and had a quick demo in which we sent packets over
-to a host computer.
+Originally we had a UART-based WiFi module that did not have thorough
+documentation or any sort of support on the internet. With this in mind, and
+the fact that it seemed to overheat easily, we looked for a quick replacement.
+What we found was the CC3000, which boasted a 4Mbps data transfer rate over
+TCP.  Having a little bit of background in networking, we figured UDP would be
+even faster so we locked this in as our choice and quickly had a demo in which
+we sent packets over to a host computer.
 
 \subsubsection{RFID in Development}
-We managed to find a reliable RFID radio that had a card-present line which
-suited our needs very well. The development on this part was basically
-nonexistent, so that the trigger processing reached completion even quicker. We
-had the RFID part completely working by the time this milestone came around.
+We managed to find a reliable \gls{rfid} radio that had a tag-present line
+which suited our needs very well. The development on this part was basically
+nonexistent, and thus the trigger processing reached completion even quicker.
+We had the \gls{rfid} part completely working by the time this milestone came
+around.
 
 \subsubsection{Video Data Encoded}
-Video data was the slowest part of our project to develop, since writing a USB
-device driver is no small task. We did not manage to see video until around a
-month and a half after the first milestone. This milestone portrayed both our
-hearty ambition and innocent ignorance.
+Video data was the slowest part of our project to develop, since writing a
+\gls{usb} device driver is no small task. We did not manage to see video until
+around a month and a half after the first milestone. This milestone portrayed
+both our hearty ambition and innocent ignorance.
 
 \subsection{Milestone 2}
 \subsubsection{Working Full-Featured Prototype}
 This was definitely the issue that kept us behind on our project. We did not
 have verified data by the second milestone, so it was difficult to test
-anything. Our team had all of the other parts done, like a WiFi driver that
+anything. Our team had all of the other parts done (i.e. a WiFi driver that
 could send at a reasonable speed and all of the trigger processing in its final
-state, but without being able to see video we were not sure whether or not the
+state), but without being able to see video we were not sure whether or not the
 project would be completed on time.
 
 \subsubsection{PCB is Shipped}
-We overestimated the time required to get a PCB out so by the time the second
-milestone came around we had already populated our PCB and begun testing.
-Luckily for us, we had plenty of time to order a second version of a PCB which
-addressed problems we had like an incorrect crystal, an unorderable SD card
-reader, and a few small on-board revisions we needed to make. Getting this done
-as early as we did definitely helped us stay on track.
+We overestimated the time required to get a \gls{pcb} out, so by the time the
+second milestone came around we had already populated our \gls{pcb} and begun
+testing.  Luckily for us, we had plenty of time to order a second version of a
+\gls{pcb} which addressed problems we had such as an incorrect crystal, an
+unorderable \gls{sd} card reader, and a few small on-board revisions we needed
+to make. Getting this done as early as we did definitely helped us stay on
+track.
 
 \subsubsection{Enclosure Designed}
-This goal was also underestimated. Our team had a first version enclosure
-printed that helped us form the next and final version that we have on the
-final prototype. Having this milestone completed also helped us stay on track.
-
-\subsection{Budget and Bill of Materials}
-
-% TODO budget goes here
-
+Designing the enclosure also took less time than anticipated. Our team had a
+first version enclosure printed that helped us form the next and final version
+that we have on the final prototype. Having this milestone completed also
+helped us stay on track.
 
 \section{Lessons Learned}
 When we reflect on the outcome of our project, there are a few points which we
@@ -365,13 +374,14 @@ without first researching to a point where we would be able to realistically
 quantify them. Instead, we had a tendency to create requirements based on the
 ideal case - what we thought would be nice to have or a good goal to have
 before us. This lack of research is reflected in the part choices we made (i.e.
-the CC3000), and really propagated throughout our entire project. The cliché
-``measure twice, cut once'' comes to mind with regards to this situation.
+the CC3000), and really propagated throughout our entire project. The common
+saying ``measure twice, cut once'' comes to mind with regards to this
+situation.
 
-Also, we learned that most of tasks require steep learning curve, and it is
+Also, we learned that most tasks require steep learning curve, and it is
 very hard for other members to participate in tasks that has already made
-significant progress. Other members trying to help incomplete tasks after their
-given tasks had difficulty in catching up the already made progress but time
+significant progress. Other members trying to help with incomplete tasks after completing their
+given tasks had difficulty in catching up. Time
 was limited for the original member of the task to walk through the progress
 that he had already made. This resulted in some of team members doing more
 works than the others. We learned that it is important to distribute works
@@ -402,7 +412,8 @@ work more towards the end of the project, but this was because we had
 underestimated the amount of work the USB driver would require, and this
 delayed all parts, including work on the PCB. So, if we could go back and
 increase work on this portion of our project in the beginning, or avoid
-undertaking that monstrous task altogether.
+undertaking that monstrous task altogether, we feel that this project would
+have been less stressful and more successful.
 
 \subsection{Individual Lessons Learned}
 Alec learned about writing a USB device driver, and choosing video formats
@@ -411,7 +422,7 @@ than 64 pins for the first time, and learned from Yitian how to use flux to fix
 solder bridges. He also learned a bit about designing a network protocol.
 
 Alex learned about researching parts. This involved not only finding a part
-that meets the requirements of the project but also researching different
+that meets the requirements of the project, but also researching different
 sources for the same part. This was learned the hard way by choosing a WiFi
 module that has been retired and is no longer supported by TI, something that
 made finding resources much more difficult. He also learned about PCB
@@ -425,18 +436,19 @@ deal about debugging hardware, including what not to do (i.e. shorting pins
 with bad probes).
 
 Jiqing got familiar with the process flow of programming in Code Composer
-Studio from TI and the 3D design by using Solidworks. He learned about the
-working principle of reading from and writing to a SD card via SPI
-communication and how each individual function got integrated in a whole
-system. He also learned about using Logic Analyzer to debug and asking TI
-supporting team online for help. He worked with Alec on establishing a USB
-device driver in the beginning of the project and learned its working principle
-with the help of Alec and examples from documents.
+Studio from TI and 3D design by using Solidworks. He learned about the working
+principle of reading from and writing to a SD card via SPI communication and
+how each individual function got integrated in a whole system. He also learned
+about using a Saleae Logic Analyzer to debug and asking TI support team online
+for help. He worked with Alec on establishing a \gls{usb} device driver in the
+beginning of the project and learned its working principle with the help of
+Alec and examples from documents.
 
-Yun learned about an overall real-application design process that includes PCB
-design and manufacturing, 3D design and printing, and group coordination
-through Github. Also, he learned about video protocol and its encoding and
-decoding methods.
+Yun learned about an overall real-application design process that includes
+\gls{pcb} design and manufacturing, 3D design and printing, and group
+coordination through GitHub. He learned how to implement microcontroller code
+using Code Composer Studio, and designing 3D parts using Solidworks. Also, he
+learned about video protocols and various encoding and decoding methods.
 
 \section{Contributions}
 A summary of individual contributions is given in Table
@@ -451,22 +463,23 @@ A summary of individual contributions is given in Table
         Alex LaBerge & Wi-Fi driver, \gls{gps}, sleep mode, \gls{pcb} verification & 25\%\\
         Jacob Perrin & \gls{pcb} design and assembly, group coordination & 20\%\\
         Jiqing Jiang & \gls{sd} card driver, \gls{uvc} driver, enclosure design, poster design & 15\%\\
-        Yun Chan Han & Trigger circuitry and software, enclosure design, poster design & 15\%\\
+        Yun Chan Han & Trigger circuitry/software, enclosure design, poster design & 15\%\\
     \end{tabular}
+    \label{tab:individual_contrib}
 \end{table}
 
-Alec was responsible for the USB Video Class device driver. This driver parsed
-the configuration of the connected USB camera, determined the optimal format
+Alec was responsible for the \gls{uvc} device driver. This driver parsed the
+configuration of the connected \gls{usb} camera, determined the optimal format
 and video size based on bandwidth constraints, and then configured the camera.
 After camera configuration, the driver also implemented the “top” side of an
 interrupt-based video capture solution. In addition, Alec wrote the base
 station code, which listened on the network for video broadcasted by the body
-camera system, converted it to a reasonable format with OpenCV, and displayed
+camera system, converted it to a displayable format with OpenCV, and displayed
 it with the Qt Toolkit. Finally, Alec was responsible for the power system
 design and reviewing the circuit schematics and layouts produced by Jake.
 
 Alex was responsible for the main control loop for the TIVA recording software,
-which included integrating his WiFi and GPS drivers in with Alec's USB driver.
+which included integrating his WiFi and \gls{gps} drivers in with Alec's USB driver.
 He debugged the SD card implementation and formatted Jiqing's driver to work with
 the pins that the PCB used, as well as integrated that feature into the control loop. 
 He optimized the TI library for the WiFi module to get the fastest throughput
@@ -479,41 +492,41 @@ worked and debugging the issues that arose.
 Jacob was primarily responsible for all activities related to the hardware, and
 specifically the PCB. As such, he designed the schematic and layout for the
 PCB. The PCB was designed before most parts of the prototype had been finished,
-or even begun. As such, this took a good deal of effort and care (there were
-still small errata on the final version of the PCB). He also took part in the
+or even begun. As such, this took a good deal of effort and care (there are
+still small errata on the current version of the PCB). He also took part in the
 assembly of four different PCB boards. Additionally, Jacob was responsible for
 coordinating group activities and communication with outside parties. This
 includes getting sponsored by Advanced Circuits as well as doing any
 miscellaneous grunt work that the group came across through the life of the
 project.
 
-Jiqing was responsible for the implementation of saving video data in a micro
-SD card on TM4C1294NCPDT and the enclosure design in Solidworks. He also helped
-to debug for system integration and checking PCB design when things did not
-work. He also worked with Alec on the USB video class device driver and
+Jiqing was responsible for the implementation of saving video data to a micro
+\gls{sd} card and the enclosure design in Solidworks. He also helped to debug
+during system integration and checking \gls{pcb} design when bugs were
+discovered.  He also worked with Alec on the \gls{uvc} device driver and
 designed the poster.
 
-Yun was responsible for the hardware and software of triggering portion of the
-project. He designed the schematic of a circuitry that takes analog and digital
-inputs from a switch, a microphone, and a RFID reader. The circuitry he
-designed was adjustable in that the noise level can be controlled externally.
-Then he designed the triggering logic to start and end the video recording on
-MSP430. He also designed a tamperproof enclosure that protects a USB cable
-connection and a SD card from users. He designed the poster for design expo as
-well.
+Yun was responsible for the hardware and software of the triggering portion of
+the project. He designed the schematic of a circuitry that takes analog and
+digital inputs from a switch, a microphone, and an \gls{rfid} reader. The
+circuitry he designed was adjustable allowing the noise level can be controlled
+externally.  He designed the triggering logic to start and end the video
+recording on the MSP430. He also designed an enclosure that protects the
+\gls{usb} cable connection and \gls{sd} card from users. He designed the poster
+for design expo as well.
 
 \section{Cost of Manufacture}
 Our total estimated cost of manufacturing is \$120 for any quantity greater
 than 150. This seems like a very reasonable number given the price of the parts
-listed above. This quote includes the WiFi breakout and RFID module. The only
-additional pieces of hardware that would be needed in order to make this quote
-a complete package would be the camera, battery, and enclosure. These items
-would likely bring the price to manufacture this item to somewhere closer to
-\$200-\$250. Given that we would need to rethink some partitions of this project,
-most important among these being WiFi bandwidth and microprocessor processing
-power, this number does appear to be very rough. However, with this cost of
-manufacturing, such a product could be very competitive in this market, where
-prices can often be found near the \$1000 range.
+listed above. This quote includes the WiFi breakout and \gls{rfid} module. The
+only additional pieces of hardware that would be needed in order to make this
+quote a complete package would be the camera, battery, and enclosure. These
+items would likely bring the price to manufacture this item to somewhere closer
+to \$200-\$250. Given that we would need to rethink some partitions of this
+project, most important among these being WiFi bandwidth and microprocessor
+processing power, this number does appear to be very rough. However, with this
+cost of manufacturing, such a product could be very competitive in this market,
+where prices can often be found near the \$1000 range.
 
 \section{Parts}
 % TODO Table of parts with prices

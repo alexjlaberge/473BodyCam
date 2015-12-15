@@ -6,7 +6,7 @@ digraph G {
     camera [label="Camera"]
     sd [label="SD Card"]
     tiva [label="TIVA"]
-    trigger [label="VIDEO_TRIGGER"]
+    trigger [label="Trigger System"]
     wifi [label="Wi-Fi"]
 
     camera -> tiva

@@ -17,6 +17,12 @@ clean :
 %.pdf : %.svg
 	convert $< $@
 
+%.pdf : %.tif
+	convert $< $@
+
+%.pdf : %.jpg
+	convert $< $@
+
 %.svg : %.dot
 	dot -Tsvg $< > $@
 
@@ -26,6 +32,7 @@ final_report.pdf : \
 	IOBoard_brd.pdf \
 	IOBoard_sch.pdf \
 	budget.tex \
+	exploded_enclosure.pdf \
 	glossary.tex \
 	logo.pdf \
 	references.bib \
