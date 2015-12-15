@@ -32,11 +32,14 @@
     \end{tabular}
 \end{center}
 
+\thispagestyle{empty}
 \newpage
 
 \tableofcontents
-
+\thispagestyle{empty}
 \newpage
+
+\setcounter{page}{1}
 
 \section{Overview}
 Police officers around the country are beginning to wear body cameras to ensure
@@ -46,7 +49,7 @@ tradeoff, the \gls{doj} has asked law enforcement agencies to construct and
 pilot programs for testing\cite{officer_privacy}.  Our product attempts to ease
 policy concerns by creating a body camera system which intelligently decides
 when to record footage by using various triggers, including environmental
-stimuli and manual control.  Our project can be deemed a success, in the sense
+stimuli and manual control.  Our project can be deemed a success in the sense
 that we demonstrated a proof of concept. Our team created a police body camera
 that decides to record based on the firearm being unholstered, loud noises, or
 an officer controlled manual switch.  The quality of the recording was not
@@ -107,8 +110,8 @@ third party is commonly done in business.}.
 
 \begin{figure}[h]
     \centering
-    \includegraphics[height=0.5\textheight]{sys_desc}
-    \caption{System description}
+    \includegraphics[height=0.35\textheight]{sys_desc}
+    \caption{High level system design}
     \label{fig:system_description}
 \end{figure}
 
@@ -117,8 +120,8 @@ record system. A functional block diagram of these systems and their related
 subsystems is shown in Figure \ref{fig:system_description}. The trigger system
 serves as a ``trigger'' to wake up the record system when the system senses a
 potentially violent situation. The MSP430 contains code which determines when
-the TIVA should be awoken based on selected events. When the MSP430 decides
-that an event should be recorded, it sends a signal to the TIVA, which serves
+the Tiva should be awoken based on selected events. When the MSP430 decides
+that an event should be recorded, it sends a signal to the Tiva, which serves
 as an interrupt to wake up the larger processor. This same signal also toggles
 a set of MOSFETs which control power to the record system related peripherals.
 Together, these two systems make up a product which can be smarter and lower
@@ -136,9 +139,9 @@ power than current solutions.
 
 The trigger subsystem, shown in Figure \ref{fig:trigger_flow}, consists of the
 hardware and software used to process our triggers and send an interrupt to the
-TIVA to begin or end recording. The MSP430 takes in a comparator line that
+Tiva to begin or end recording. The MSP430 takes in a comparator line that
 determines the microphone level, an \gls{rfid} radio card present line, and a
-manual switch and determines when to wake the TIVA based on those inputs.
+manual switch and determines when to wake the Tiva based on those inputs.
 
 We chose the MSP430 because it is a very low power processor that has enough
 GPIO pins to fit our need. When not receiving interrupts off of the 3 trigger
@@ -149,7 +152,8 @@ The most important trigger for this project is the \gls{rfid} radio. We use the
 ID-12LA \gls{rfid} radio because it is relatively low power and matched the
 frequency of the sticker tags we wanted to use. It has a ``Card Present'' line
 which is high when a tag is present and low when there is no tag, which
-simplified the interface for this part greatly. 
+simplified the interface for this part greatly. \gls{rfid} tags also work on
+metal, allowing integration with typical officer sidearms.
 
 We use a switch on the device in order to allow the officer to turn on the
 device if he feels unsafe. However, the switch cannot turn off the device if
@@ -159,12 +163,13 @@ The microphone input is calibrated with two on-board potentiometers,
 controlling gain and triggering threshold, that can be customized for an
 officers environment. This value is then put into an analog comparator that
 triggers an MSP430 interrupt when the microphone value has surpassed the
-threshold value. 
+threshold value. The trigger is high for 10 minutes after a microphone event,
+which is controlled by a timer on the MSP430.
 
 Mechanically, many of these triggering mechanisms are located outside of the
 enclosure. This allows for little interference between the enclosure and the
 \gls{rfid} radio. This also allows the user to be able to easily access the
-switch and the microphone to be able to pick up smaller more clear sounds.
+switch and the microphone to be able to pick up smaller sounds.
 
 \subsection{Record System}
 \label{sec:sys_video}
@@ -172,7 +177,7 @@ The record system consists of the hardware and software used to capture video
 from a source and send it to various sinks. The source of the video is any
 camera that complies with the \gls{uvc} standard. There are currently two
 implemented sinks: an on-board \gls{sd} card and streaming to a base station
-over Wi-Fi. The larger of the two onboard processors, a TIVA, manages the
+over Wi-Fi. The larger of the two onboard processors, a Tiva, manages the
 transfer of video from source to sinks. The flow of video through the system is
 shown in Figure \ref{fig:video_flow}.
 
@@ -194,8 +199,8 @@ as close to that bandwidth as possible without exceeding it. The driver
 initialization function declaration is shown in Appendix
 \ref{app:software_interfaces}.
 
-The TIVA processor is triggered on by the trigger system, which is described in
-Section \ref{sec:sys_trigger}. Once triggered, the TIVA opens connections to
+The Tiva processor is triggered on by the trigger system, which is described in
+Section \ref{sec:sys_trigger}. Once triggered, the Tiva opens connections to
 the attached camera, the on-board \gls{sd} card, and the base station via the
 Wi-Fi chip. As video data flows in from the camera, the \gls{uvc} driver uses
 callbacks to announce the start of a frame, the data in a frame, and the
@@ -249,7 +254,7 @@ life-saving.
 \subsection{Power System}
 Our system is designed to use as little energy as possible by removing power to
 all video-related subsystems until video needs to be recorded. The video
-subsystem consists of a Texas Instruments TIVA
+subsystem consists of a Texas Instruments Tiva
 microcontroller\cite[p.~1880]{tm4c1294ncpdt}, a Texas Instruments CC3000 Wi-Fi
 chip\cite[p.~6]{cc3000}, an SD card\cite[p.~19,23]{sd_standard}, a EM-506 \gls{gps}
 unit\cite[p.~10]{em506}, and a USB camera\cite[p.~245]{usb_standard}. These
@@ -263,7 +268,7 @@ case power draws are given in Table \ref{tab:worst_case_power}.
     \caption{Worst Case Power Consumption}
     \begin{tabular}{lrrr}
         \textbf{Device} & \textbf{Voltage (V)} & \textbf{Current (mA)} & \textbf{Power (mW)}\\
-        TIVA & 3.3 & 133.4 & 440.2\\
+        Tiva & 3.3 & 133.4 & 440.2\\
         Camera & 5.0 & 500.0 & 2500.0\\
         GPS & 5.0 & 55.0 & 275.0\\
         Microphone & 3.3 & 0.5 & 1.0\\
@@ -291,31 +296,51 @@ upgraded as needed, depending on the workload of the officer.
     \label{fig:exploded_enclosure}
 \end{figure}
 
-\subsection{Conclusion}
+We made an enclosure that houses all the components except a battery and a
+camera, shown in Figure \ref{fig:exploded_enclosure}. The enclosure was
+intended to be tamperproof (or as tamperproof as possible for a prototype) by
+preventing connections to a \gls{usb} camera and a \gls{sd} card from being
+disconnected.  Due to the limitation of a 3D printer and the design of our
+\gls{pcb}, the enclosure design was not the most optimal, wasting a lot of spaces
+inside the enclosure.  The enclosure is attached to the holster and had an
+opening at the bottom to minimize the distance between the \gls{rfid} reader and a
+\gls{rfid} tag on the firearm.  This ensures an accurate detection of the state of
+the firearm - whether it is holstered or otherwise. If this project were to be
+moved towards production, the product would need considerable improvement in
+the area of the enclosure, but since we are not skilled in this area, we feel
+that the current state is more than satisfactory.
+
+The \gls{usb} camera was mounted on the shoulder of the officer. Since most
+police officer uniforms have a shoulder strap, USB cameras with clips can be
+easily mounted. However, this can be improved by designing our own camera mount
+so that any camera can be firmly mounted on the shoulder without any external
+clips. In addition, a more secured mount would be optimal to improve video
+quality and directionality.
 
 \section{Milestones, Schedule, and Budget}
 Most of this project was on schedule from the beginning. The only problem we
 really ran into was getting our final piece of the puzzle in place: decoding
-our video. Once we that was working, the remainder of the project was quickly
+our video. Once that was working, the remainder of the project was quickly
 integrated and a full feature prototype was able to be tested. Our original
 schedule is shown in Appendix \ref{app:gantt}. All deadlines were met except
 for the Camera Driver, which was not in testing until late November and not
 finished until early December.
 
-Our original budget was around \$312.93 and we spent \$884.91. % TODO
+Our original budget was around \$312.93 and we spent \$884.91.
 
 \subsection{Milestone 1}
 \subsubsection{GPS and RTC Implementation and Verification}
-Getting an early \gls{gps} parser was one of the easier parts of the project, while
-it was also one of the more unnecessary parts for a working demo. \gls{gps} was done
-early, but it turned out not to be very vital to the success of the project.
+Getting an early \gls{gps} parser was one of the easier parts of the project.
+It was also one of the more unnecessary parts for a working demo. \gls{gps} was
+done early, but it turned out not to be very vital to the success of the
+project.
 
 \subsubsection{Audio and Manual Trigger Implementation and Verification}
 Quickly getting this system prototyped was a very early victory that helped the
 trigger side of our project get done as quickly as it did. We had a working
 prototype for the MSP430 trigger processor about a week before the first
 milestone and we had a final version a few weeks later, which ensured that once
-we got all of the TIVA video processing done, we could easily integrate the two
+we got all of the Tiva video processing done, we could easily integrate the two
 parts together.
 
 \subsubsection{Wi-Fi Testing}
@@ -331,12 +356,12 @@ we sent packets over to a host computer.
 We managed to find a reliable \gls{rfid} radio that had a tag-present line
 which suited our needs very well. The development on this part was basically
 nonexistent, and thus the trigger processing reached completion even quicker.
-We had the \gls{rfid} part completely working by the time this milestone came
-around.
+We had the \gls{rfid} component completely working by the time this milestone
+came around.
 
 \subsubsection{Video Data Encoded}
 Video data was the slowest part of our project to develop, since writing a
-\gls{usb} device driver is no small task. We did not manage to see video until
+\gls{usb} device driver was no small task. We did not manage to see video until
 around a month and a half after the first milestone. This milestone portrayed
 both our hearty ambition and innocent ignorance.
 
@@ -365,35 +390,33 @@ that we have on the final prototype. Having this milestone completed also
 helped us stay on track.
 
 \section{Lessons Learned}
-When we reflect on the outcome of our project, there are a few points which we
-wish we would have known before the project started, and so are points we have
-since learned. 
+When we reflect on the outcome of our project, there are a few points that we
+wish we would have known before the project started.
 
 The first mistake our group made was to create specifications and requirements
 without first researching to a point where we would be able to realistically
 quantify them. Instead, we had a tendency to create requirements based on the
-ideal case - what we thought would be nice to have or a good goal to have
-before us. This lack of research is reflected in the part choices we made (i.e.
-the CC3000), and really propagated throughout our entire project. The common
-saying ``measure twice, cut once'' comes to mind with regards to this
-situation.
+ideal case - what we thought would be nice to have or a good goal to have. This
+lack of research is reflected in the part choices we made (i.e. the CC3000),
+and really propagated throughout our entire project. The common saying
+``measure twice, cut once'' comes to mind with regards to this situation.
 
-Also, we learned that most tasks require steep learning curve, and it is
-very hard for other members to participate in tasks that has already made
-significant progress. Other members trying to help with incomplete tasks after completing their
-given tasks had difficulty in catching up. Time
-was limited for the original member of the task to walk through the progress
-that he had already made. This resulted in some of team members doing more
-works than the others. We learned that it is important to distribute works
-correctly and that all team members keep track of each other's tasks.
+Also, we learned that most tasks require steep learning curve, and it is very
+hard for other members to participate in tasks that have already made
+significant progress. Other members found it difficult to help with incomplete
+tasks after completing their given tasks. Time was limited for the original
+member of the task to walk through the progress that he had already made. This
+resulted in some of team members doing more work than the others. We learned
+that it is important to distribute work correctly and that all team members
+keep track of each other's tasks.
 
 An element of our project that really went well was the choice of development
-board and process we used to convert development board to custom circuit board.
-The development board had a great deal of pinouts and functionality that made
-the schematic creation process easy. We were able to test on the development
-board using the exact same pins and peripherals that would later be used on the
-PCB. This meant that once the hardware was ready and correct, the software
-worked almost immediately, with little software debugging.
+board and process we used to convert our development platform to a custom
+\gls{pcb}.  The development board had a great deal of pinouts and functionality
+that made the schematic creation process easy. We were able to test on the
+development board using the exact same pins and peripherals that would later be
+used on the PCB. This meant that once the hardware was ready and correct, the
+software worked almost immediately, with little software debugging.
 
 The design of the enclosure was an afterthought, and the project appeared to be
 poorly integrated because of this. The enclosure was bright blue, and very
@@ -435,14 +458,14 @@ and layout considerations. After fabrication, he was forced to learn a great
 deal about debugging hardware, including what not to do (i.e. shorting pins
 with bad probes).
 
-Jiqing got familiar with the process flow of programming in Code Composer
-Studio from TI and 3D design by using Solidworks. He learned about the working
-principle of reading from and writing to a SD card via SPI communication and
-how each individual function got integrated in a whole system. He also learned
-about using a Saleae Logic Analyzer to debug and asking TI support team online
-for help. He worked with Alec on establishing a \gls{usb} device driver in the
-beginning of the project and learned its working principle with the help of
-Alec and examples from documents.
+Jiqing got familiar with the process of programming in Code Composer Studio
+from TI and 3D design by using Solidworks. He learned about reading from and
+writing to an \gls{sd} card via SPI communication and how each individual
+function got integrated in a whole system. He also learned about using a Saleae
+Logic Analyzer to debug and asking TI support team online for help. He worked
+with Alec on establishing a \gls{usb} device driver in the beginning of the
+project and learned how \gls{usb} works with the help of Alec and examples from
+documents.
 
 Yun learned about an overall real-application design process that includes
 \gls{pcb} design and manufacturing, 3D design and printing, and group
@@ -478,14 +501,14 @@ camera system, converted it to a displayable format with OpenCV, and displayed
 it with the Qt Toolkit. Finally, Alec was responsible for the power system
 design and reviewing the circuit schematics and layouts produced by Jake.
 
-Alex was responsible for the main control loop for the TIVA recording software,
+Alex was responsible for the main control loop for the Tiva recording software,
 which included integrating his WiFi and \gls{gps} drivers in with Alec's USB driver.
 He debugged the SD card implementation and formatted Jiqing's driver to work with
 the pins that the PCB used, as well as integrated that feature into the control loop. 
 He optimized the TI library for the WiFi module to get the fastest throughput
 possible on the CC3000 by removing unnecessary delays and making the sockets
 nonblocking. Alex also wrote the first iteration of base station socket code
-which received the data streamed from the TIVA, which was later improved by
+which received the data streamed from the Tiva, which was later improved by
 Alec. Finally, Alex was responsible for verifying the components on the PCB
 worked and debugging the issues that arose.
 
@@ -531,6 +554,29 @@ where prices can often be found near the \$1000 range.
 \section{Parts}
 % TODO Table of parts with prices
 % TODO Table of part prices for mass production
+
+\section{Acknowledgements}
+
+Our SD card driver implementation used the FatFs library found at
+\url{http://elm-chan.org/fsw/ff/00index\_e.html}. We created the SPI functions
+and the library took care of the FAT file system formatting.
+
+Our WiFi driver implementation used the CC3000 library for the Tiva found in
+the TivaWare Package. We modified the library to optimize out delays as well as
+use a different set of pins. We also wrote wrapper functions that abstracted
+out most of the low-level details. The download for TivaWare can be found at
+\url{http://www.ti.com/tool/sw-tm4c}.
+
+Our \gls{uvc} driver implementation used USBLib, a library written by Texas
+Instruments. The base station software used the OpenCV and Qt libraries to
+decode and display video.
+
+Some of our circuit design was borrowed from MAAV. MAAV has used a similar
+device, the TM4C123, on some of there designs. They have also used an SD card
+on their Tiva.
+
+A special thanks to Randy Perrin for checking our PCB designs and making sure
+nothing looked out of place.
 
 \newpage
 
