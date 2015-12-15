@@ -31,4 +31,5 @@ final_report.pdf : \
 	references.bib \
 	subsys_video.pdf \
 	sys_desc.pdf \
+	trigger_flow.png \
 	uvc.h

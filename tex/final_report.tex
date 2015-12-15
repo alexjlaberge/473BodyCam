@@ -117,7 +117,19 @@ An overview of our product is shown in Figure \ref{fig:system_description}.
 
 \subsection{Trigger System}
 \label{sec:sys_trigger}
-The trigger subsystem consists of the hardware and software used to process our triggers and send an interrupt to the TIVA to begin or end recording. The MSP430 takes in a comparator line that determines the microphone level, an RFID radio card present line, and a manual switch and determines when to wake the TIVA based on those inputs. 
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.9\textwidth]{trigger_flow}
+    \caption{Trigger flow}
+    \label{fig:trigger_flow}
+\end{figure}
+
+The trigger subsystem, shown in Figure \ref{fig:trigger_flow}, consists of the
+hardware and software used to process our triggers and send an interrupt to the
+TIVA to begin or end recording. The MSP430 takes in a comparator line that
+determines the microphone level, an RFID radio card present line, and a manual
+switch and determines when to wake the TIVA based on those inputs.
 
 \subsection{Video System}
 \label{sec:sys_video}
